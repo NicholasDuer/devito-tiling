@@ -42,8 +42,8 @@ int Kernel(const float a, struct dataobj *restrict u_vec, const float dt, const 
   float r3 = 1.0F/(h_z*h_z);
 
   int tile_time_size = 4;
-  int tile_x_size = 32;
-  int tile_y_size = 32;
+  int tile_x_size = 64;
+  int tile_y_size = 64;
   int angle = 2;
 
   int tile_x_delta = tile_x_size - 2 * angle * (tile_time_size - 1);
@@ -54,11 +54,11 @@ int Kernel(const float a, struct dataobj *restrict u_vec, const float dt, const 
     /* Begin section0 */
     START_TIMER(section0)
 
-    for (int x_tile_base = x_m - tile_x_delta; x_tile_base <= x_M; x_tile_base += tile_x_delta) 
+    for (int x_tile_base = x_m - (angle * (tile_time_size - 1)); x_tile_base <= x_M; x_tile_base += tile_x_delta) 
     {
-      for (int y_tile_base = y_m - tile_y_delta; y_tile_base <= y_M; y_tile_base += tile_y_delta) 
+      for (int y_tile_base = y_m - (angle * (tile_time_size - 1)); y_tile_base <= y_M; y_tile_base += tile_y_delta) 
       { 
-        for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_tile_base + tile_time_size; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
+        for (int time = time_tile_base, t0 = (time)%(2), t1 = (time + 1)%(2); time <= MIN(time_tile_base + tile_time_size - 1, time_M); time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
           {
             #pragma omp parallel num_threads(nthreads)
             {
@@ -67,13 +67,13 @@ int Kernel(const float a, struct dataobj *restrict u_vec, const float dt, const 
               {
                 for (int y0_blk0 = y_tile_base + angle * (time % tile_time_size); y0_blk0 <= y_M; y0_blk0 += y0_blk0_size)
                 {
-                  for (int x = MAX(x_m, x0_blk0); x <= MIN(MIN(x0_blk0 + x0_blk0_size - 1, x_M), x_tile_base + tile_x_size - angle * (time % tile_time_size)); x += 1)
+                  for (int x = MAX(x_m, x0_blk0); x <= MIN(MIN(x0_blk0 + x0_blk0_size - 1, x_M), x_tile_base + tile_x_size - angle * (time % tile_time_size) - 1); x += 1)
                   {
-                    for (int y = MAX(y_m, y0_blk0); y <= MIN(MIN(y0_blk0 + y0_blk0_size - 1, y_M), y_tile_base + tile_y_size - angle * (time % tile_time_size)); y += 1)
+                    for (int y = MAX(y_m, y0_blk0); y <= MIN(MIN(y0_blk0 + y0_blk0_size - 1, y_M), y_tile_base + tile_y_size - angle * (time % tile_time_size) - 1); y += 1)
                     {
                       #pragma omp simd aligned(u:32)
                       for (int z = z_m; z <= z_M; z += 1)
-                      {
+                      { 
                         float r4 = -2.5F*u[t0][x + 4][y + 4][z + 4];
                         u[t1][x + 4][y + 4][z + 4] = dt*(a*(r1*(r4 - 8.33333333e-2F*(u[t0][x + 2][y + 4][z + 4] + u[t0][x + 6][y + 4][z + 4]) + 1.33333333F*(u[t0][x + 3][y + 4][z + 4] + u[t0][x + 5][y + 4][z + 4])) + r2*(r4 - 8.33333333e-2F*(u[t0][x + 4][y + 2][z + 4] + u[t0][x + 4][y + 6][z + 4]) + 1.33333333F*(u[t0][x + 4][y + 3][z + 4] + u[t0][x + 4][y + 5][z + 4])) + r3*(r4 - 8.33333333e-2F*(u[t0][x + 4][y + 4][z + 2] + u[t0][x + 4][y + 4][z + 6]) + 1.33333333F*(u[t0][x + 4][y + 4][z + 3] + u[t0][x + 4][y + 4][z + 5]))) + r0*u[t0][x + 4][y + 4][z + 4] + 1.0e-1F);
                       }
@@ -89,7 +89,7 @@ int Kernel(const float a, struct dataobj *restrict u_vec, const float dt, const 
     }
   }
 
- 
-
   return 0;
 }
+/* Backdoor edit at Wed Jan 25 17:09:23 2023*/ 
+/* Backdoor edit at Wed Jan 25 17:09:35 2023*/ 
