@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../devito')
+
 from matplotlib.pyplot import pause # noqa
 from devito import configuration
 import matplotlib.pyplot as plt
