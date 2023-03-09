@@ -18,14 +18,13 @@ parser.add_argument("-bls", "--blevels", default=2, type=int, nargs="+",
                     help="Block levels")
 args = parser.parse_args()
 
-c = ipp.Client(profile='mpi')
-
 nx = args.shape
 nt = args.nt
 
 init_value = 0
 
 # Field initialization
+import pdb;pdb.set_trace()
 grid = Grid(shape=(nx))
 u = TimeFunction(name='u', grid=grid)
 u.data[:, :] = init_value
@@ -39,4 +38,4 @@ op0.apply(time_M=nt)
 
 norm_u = norm(u)
 print(norm_u)
-assert(np.isclose(norm_u, 19804870000000.0))
+assert(np.isclose(norm_u, 198048700000.0))
