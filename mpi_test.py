@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='Process arguments.')
 
 parser.add_argument("-d", "--shape", default=(64, 64, 64), type=int, nargs="+",
                     help="Number of grid points along each axis")
-parser.add_argument("-so", "--space_order", default=8,
+parser.add_argument("-so", "--space_order", default=2,
                     type=int, help="Space order of the simulation")
 parser.add_argument("-to", "--time_order", default=1,
                     type=int, help="Time order of the simulation")

@@ -227,8 +227,4 @@ static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct ne
   sendrecv0(u_vec,u_vec->npsize[1],u_vec->hsize[4],u_vec->npsize[3],otime,u_vec->hofs[2],u_vec->oofs[5],u_vec->hofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->clc,nb->crc,comm);
   sendrecv0(u_vec,u_vec->npsize[1],u_vec->npsize[2],u_vec->hsize[7],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->oofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[7],nb->ccr,nb->ccl,comm);
   sendrecv0(u_vec,u_vec->npsize[1],u_vec->npsize[2],u_vec->hsize[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->oofs[7],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->ccl,nb->ccr,comm);
-}/* Backdoor edit at Wed Mar  8 16:11:49 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:14:20 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:14:35 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:22:20 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:22:33 2023*/ 
+}

@@ -131,8 +131,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
               #pragma omp simd aligned(u:32)
               for (int z = z_m; z <= z_M; z += 1)
               {
-                float r4 = -1.25F*u[t0][x + 8][y + 8][z + 8];
-                u[t1][x + 8][y + 8][z + 8] = dt*(r0*(r4 - 4.16666666642413e-2F*(u[t0][x + 6][y + 8][z + 8] + u[t0][x + 10][y + 8][z + 8]) + 6.66666666627862e-1F*(u[t0][x + 7][y + 8][z + 8] + u[t0][x + 9][y + 8][z + 8])) + r1*(r4 - 4.16666666642413e-2F*(u[t0][x + 8][y + 6][z + 8] + u[t0][x + 8][y + 10][z + 8]) + 6.66666666627862e-1F*(u[t0][x + 8][y + 7][z + 8] + u[t0][x + 8][y + 9][z + 8])) + r2*(r4 - 4.16666666642413e-2F*(u[t0][x + 8][y + 8][z + 6] + u[t0][x + 8][y + 8][z + 10]) + 6.66666666627862e-1F*(u[t0][x + 8][y + 8][z + 7] + u[t0][x + 8][y + 8][z + 9])) + r3*u[t0][x + 8][y + 8][z + 8] + 1.0e-1F);
+                float r4 = -1.25F*u[t0][x + 12][y + 12][z + 12];
+                u[t1][x + 12][y + 12][z + 12] = dt*(r0*(r4 - 4.16666666642413e-2F*(u[t0][x + 10][y + 12][z + 12] + u[t0][x + 14][y + 12][z + 12]) + 6.66666666627862e-1F*(u[t0][x + 11][y + 12][z + 12] + u[t0][x + 13][y + 12][z + 12])) + r1*(r4 - 4.16666666642413e-2F*(u[t0][x + 12][y + 10][z + 12] + u[t0][x + 12][y + 14][z + 12]) + 6.66666666627862e-1F*(u[t0][x + 12][y + 11][z + 12] + u[t0][x + 12][y + 13][z + 12])) + r2*(r4 - 4.16666666642413e-2F*(u[t0][x + 12][y + 12][z + 10] + u[t0][x + 12][y + 12][z + 14]) + 6.66666666627862e-1F*(u[t0][x + 12][y + 12][z + 11] + u[t0][x + 12][y + 12][z + 13])) + r3*u[t0][x + 12][y + 12][z + 12] + 1.0e-1F);
               }
             }
           }
@@ -236,3 +236,4 @@ static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct ne
 /* Backdoor edit at Wed Mar  8 16:22:33 2023*/ 
 /* Backdoor edit at Wed Mar  8 17:01:58 2023*/ 
 /* Backdoor edit at Wed Mar  8 17:02:09 2023*/ 
+/* Backdoor edit at Fri Mar 10 11:59:35 2023*/ 
