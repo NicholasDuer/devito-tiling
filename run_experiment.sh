@@ -27,7 +27,7 @@ do
                     y=$((2**$y_exp))
                     z=$((2**$z_exp))
                     echo -n "$num_ranks,$time,$x,$y,$z,$iteration" >> $csv_name
-                    DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks python3 mpi_experiment.py -d $x $y $z --nt $time -so $space_order
+                    DEVITO_AUTOTUNING=aggressive OMP_NUM_THREADS=8 DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks numactl --membind=0,1 --cpunodebind=0,1 python3 mpi_experiment.py -d $x $y $z --nt $time -so $space_order
                     echo -en "\n" >> $csv_name
                     done
                 done
