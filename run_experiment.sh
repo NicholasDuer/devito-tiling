@@ -3,8 +3,8 @@ csv_name='results.csv'
 min_size_exp=7
 max_size_exp=10
 
-lower_time_bound=7
-upper_time_bound=10
+min_time_exp=7
+max_time_exp=10
 
 num_iterations=3
 space_order=2
@@ -12,7 +12,7 @@ space_order=2
 echo -n >$csv_name
 for num_ranks in 2 4
 do
-    for time_exp in `seq $lower_time_bound $upper_time_bound`
+    for time_exp in `seq $min_time_exp $max_time_exp`
     do
         for x_exp in `seq $min_size_exp $max_size_exp`
         do
