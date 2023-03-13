@@ -3,6 +3,8 @@ sys.path.append('../devito')
 
 from devito import configuration
 import numpy as np
+import os
+import time
 
 from devito import (Grid, Eq, TimeFunction, Operator, norm,
                     Constant, solve)
@@ -55,25 +57,10 @@ u.data[:, :, :, :] = 0
 u.data[:, 10, 10, 10] = init_value
 u.data[:, 10, 30, 30] = -init_value
 
-configuration['mpi'] = 'full'
 op0 = Operator(eq0, opt=('advanced', {'mpi': True}))
 op0.apply(time_M=nt, dt=dt)
-norm_u = norm(u)
 
-# ======= mpi overlapped implementation
-u.data[:, :, :, :] = 0
-u.data[:, 10, 10, 10] = init_value
-u.data[:, 10, 30, 30] = -init_value
-configuration['mpi'] = True
-
-op1 = Operator(eq0, opt=('advanced', {'mpi': True}))
-op1.apply(time_M=nt, dt=dt)
-
-usol = u
-
-print(norm_u)
-print(norm(u))
-assert np.isclose(norm(u), norm_u, atol=1e-4, rtol=0)
-print("Asserted")
-
-# plt.imshow(usol.data[1, 10, :, :]); pause(1)
+try:
+    os.remove("global_stats.txt")
+except FileNotFoundError:
+    pass    
