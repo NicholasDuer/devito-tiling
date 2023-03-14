@@ -1,4 +1,3 @@
-
 #define _POSIX_C_SOURCE 200809L
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
@@ -11,6 +10,7 @@
 #include "xmmintrin.h"
 #include "pmmintrin.h"
 #include "mpi.h"
+#include "omp.h"
 
 struct dataobj
 {
@@ -36,10 +36,10 @@ struct profiler
   double section0;
 } ;
 
-static void gather0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz);
-static void scatter0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz);
-static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm);
-static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime);
+static void gather0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz, const int nthreads);
+static void scatter0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz, const int nthreads);
+static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads);
+static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
 int angle = 4;
 int time_tile_size = 3;
@@ -72,7 +72,7 @@ static int checkisbottom(struct neighborhood * nb) {
   return 0;
 }
 
-int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const float h_z, const int time_M, const int time_m, const int x0_blk0_size, const int x_M, const int x_m, const int y0_blk0_size, const int y_M, const int y_m, const int z_M, const int z_m, MPI_Comm comm, struct neighborhood * nb, struct profiler * timers)
+int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const float h_z, const int time_M, const int time_m, const int x0_blk0_size, const int x_M, const int x_m, const int y0_blk0_size, const int y_M, const int y_m, const int z_M, const int z_m, MPI_Comm comm, struct neighborhood * nb, const int nthreads, struct profiler * timers)
 {
   float (*restrict u)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]] __attribute__ ((aligned (64))) = (float (*)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]]) u_vec->data;
 
@@ -92,7 +92,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
 
   for (int time_tile_base = time_m; time_tile_base <= time_M; time_tile_base += time_tile_size)
   {
-    haloupdate0(u_vec,comm,nb,time_tile_base % 2);
+    haloupdate0(u_vec,comm,nb,time_tile_base % 2, nthreads);
+
     for (int time = time_tile_base, t0 = (time)%(2), t1 = (time + 1)%(2); time <= MIN(time_M, time_tile_base + time_tile_size - 1); time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
     {
       /* Begin section0 */
@@ -120,20 +121,24 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
         upper_y_offset = 0;
       }
 
-      for (int x0_blk0 = x_m - lower_x_offset; x0_blk0 <= x_M + upper_x_offset; x0_blk0 += x0_blk0_size)
+      #pragma omp parallel num_threads(nthreads)
       {
-        for (int y0_blk0 = y_m - lower_y_offset; y0_blk0 <= y_M + upper_y_offset; y0_blk0 += y0_blk0_size)
+        #pragma omp for collapse(2) schedule(dynamic,1)
+        for (int x0_blk0 = x_m - lower_x_offset; x0_blk0 <= x_M + upper_x_offset; x0_blk0 += x0_blk0_size)
         {
-          for (int x = x0_blk0; x <= MIN(x0_blk0 + x0_blk0_size - 1, x_M + upper_x_offset); x += 1)
+          for (int y0_blk0 = y_m - lower_y_offset; y0_blk0 <= y_M + upper_y_offset; y0_blk0 += y0_blk0_size)
           {
-            for (int y = y0_blk0; y <= MIN(y0_blk0 + y0_blk0_size - 1, y_M + upper_y_offset); y += 1)
+            for (int x = x0_blk0; x <= MIN(x0_blk0 + x0_blk0_size - 1, x_M + upper_x_offset); x += 1)
             {
-              #pragma omp simd aligned(u:32)
-              for (int z = z_m; z <= z_M; z += 1)
+              for (int y = y0_blk0; y <= MIN(y0_blk0 + y0_blk0_size - 1, y_M + upper_y_offset); y += 1)
               {
-              float r4 = -1.42361111100763F*u[t0][x + 24][y + 24][z + 24];
-              u[t1][x + 24][y + 24][z + 24] = dt*(r0*(r4 - 8.9285714284415e-4F*(u[t0][x + 20][y + 24][z + 24] + u[t0][x + 28][y + 24][z + 24]) + 1.26984126982279e-2F*(u[t0][x + 21][y + 24][z + 24] + u[t0][x + 27][y + 24][z + 24]) - 1.00000000005821e-1F*(u[t0][x + 22][y + 24][z + 24] + u[t0][x + 26][y + 24][z + 24]) + 8.00000000046566e-1F*(u[t0][x + 23][y + 24][z + 24] + u[t0][x + 25][y + 24][z + 24])) + r1*(r4 - 8.9285714284415e-4F*(u[t0][x + 24][y + 20][z + 24] + u[t0][x + 24][y + 28][z + 24]) + 1.26984126982279e-2F*(u[t0][x + 24][y + 21][z + 24] + u[t0][x + 24][y + 27][z + 24]) - 1.00000000005821e-1F*(u[t0][x + 24][y + 22][z + 24] + u[t0][x + 24][y + 26][z + 24]) + 8.00000000046566e-1F*(u[t0][x + 24][y + 23][z + 24] + u[t0][x + 24][y + 25][z + 24])) + r2*(r4 - 8.9285714284415e-4F*(u[t0][x + 24][y + 24][z + 20] + u[t0][x + 24][y + 24][z + 28]) + 1.26984126982279e-2F*(u[t0][x + 24][y + 24][z + 21] + u[t0][x + 24][y + 24][z + 27]) - 1.00000000005821e-1F*(u[t0][x + 24][y + 24][z + 22] + u[t0][x + 24][y + 24][z + 26]) + 8.00000000046566e-1F*(u[t0][x + 24][y + 24][z + 23] + u[t0][x + 24][y + 24][z + 25])) + r3*u[t0][x + 24][y + 24][z + 24] + 1.0e-1F);
-             }
+                #pragma omp simd aligned(u:32)
+                for (int z = z_m; z <= z_M; z += 1)
+                {
+                  float r4 = -1.42361111100763F*u[t0][x + 24][y + 24][z + 24];
+                  u[t1][x + 24][y + 24][z + 24] = dt*(r0*(r4 - 8.9285714284415e-4F*(u[t0][x + 20][y + 24][z + 24] + u[t0][x + 28][y + 24][z + 24]) + 1.26984126982279e-2F*(u[t0][x + 21][y + 24][z + 24] + u[t0][x + 27][y + 24][z + 24]) - 1.00000000005821e-1F*(u[t0][x + 22][y + 24][z + 24] + u[t0][x + 26][y + 24][z + 24]) + 8.00000000046566e-1F*(u[t0][x + 23][y + 24][z + 24] + u[t0][x + 25][y + 24][z + 24])) + r1*(r4 - 8.9285714284415e-4F*(u[t0][x + 24][y + 20][z + 24] + u[t0][x + 24][y + 28][z + 24]) + 1.26984126982279e-2F*(u[t0][x + 24][y + 21][z + 24] + u[t0][x + 24][y + 27][z + 24]) - 1.00000000005821e-1F*(u[t0][x + 24][y + 22][z + 24] + u[t0][x + 24][y + 26][z + 24]) + 8.00000000046566e-1F*(u[t0][x + 24][y + 23][z + 24] + u[t0][x + 24][y + 25][z + 24])) + r2*(r4 - 8.9285714284415e-4F*(u[t0][x + 24][y + 24][z + 20] + u[t0][x + 24][y + 24][z + 28]) + 1.26984126982279e-2F*(u[t0][x + 24][y + 24][z + 21] + u[t0][x + 24][y + 24][z + 27]) - 1.00000000005821e-1F*(u[t0][x + 24][y + 24][z + 22] + u[t0][x + 24][y + 24][z + 26]) + 8.00000000046566e-1F*(u[t0][x + 24][y + 24][z + 23] + u[t0][x + 24][y + 24][z + 25])) + r3*u[t0][x + 24][y + 24][z + 24] + 1.0e-1F);
+                }
+              }
             }
           }
         }
@@ -145,7 +150,7 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   return 0;
 }
 
-static void gather0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz)
+static void gather0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz, const int nthreads)
 {
   float (*restrict buf)[y_size][z_size] __attribute__ ((aligned (64))) = (float (*)[y_size][z_size]) buf_vec;
   float (*restrict u)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]] __attribute__ ((aligned (64))) = (float (*)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]]) u_vec->data;
@@ -156,20 +161,24 @@ static void gather0(float *restrict buf_vec, const int x_size, const int y_size,
   const int x_M = x_size - 1;
   const int y_M = y_size - 1;
   const int z_M = z_size - 1;
-  for (int x = x_m; x <= x_M; x += 1)
+  #pragma omp parallel num_threads(nthreads)
   {
-    for (int y = y_m; y <= y_M; y += 1)
+    #pragma omp for collapse(2) schedule(static,1)
+    for (int x = x_m; x <= x_M; x += 1)
     {
-      #pragma omp simd aligned(u:32)
-      for (int z = z_m; z <= z_M; z += 1)
+      for (int y = y_m; y <= y_M; y += 1)
       {
-        buf[x][y][z] = u[otime][x + ox][y + oy][z + oz];
+        #pragma omp simd aligned(u:32)
+        for (int z = z_m; z <= z_M; z += 1)
+        {
+          buf[x][y][z] = u[otime][x + ox][y + oy][z + oz];
+        }
       }
     }
   }
 }
 
-static void scatter0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz)
+static void scatter0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz, const int nthreads)
 {
   float (*restrict buf)[y_size][z_size] __attribute__ ((aligned (64))) = (float (*)[y_size][z_size]) buf_vec;
   float (*restrict u)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]] __attribute__ ((aligned (64))) = (float (*)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]]) u_vec->data;
@@ -180,25 +189,28 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
   const int x_M = x_size - 1;
   const int y_M = y_size - 1;
   const int z_M = z_size - 1;
-
-  for (int x = x_m; x <= x_M; x += 1)
+  #pragma omp parallel num_threads(nthreads)
   {
-    for (int y = y_m; y <= y_M; y += 1)
+    #pragma omp for collapse(2) schedule(static,1)
+    for (int x = x_m; x <= x_M; x += 1)
     {
-      #pragma omp simd aligned(u:32)
-      for (int z = z_m; z <= z_M; z += 1)
+      for (int y = y_m; y <= y_M; y += 1)
       {
-        u[otime][x + ox][y + oy][z + oz] = buf[x][y][z];
+        #pragma omp simd aligned(u:32)
+        for (int z = z_m; z <= z_M; z += 1)
+        {
+          u[otime][x + ox][y + oy][z + oz] = buf[x][y][z];
+        }
       }
     }
   }
 }
 
-static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm)
+static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads)
 {
-  float *bufg_vec;
+  float *restrict bufg_vec __attribute__ ((aligned (64)));
   posix_memalign((void**)(&bufg_vec),64,x_size*y_size*z_size*sizeof(float));
-  float *bufs_vec;
+  float *restrict bufs_vec __attribute__ ((aligned (64)));
   posix_memalign((void**)(&bufs_vec),64,x_size*y_size*z_size*sizeof(float));
 
   MPI_Request rrecv;
@@ -207,33 +219,26 @@ static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const in
   MPI_Irecv(bufs_vec,x_size*y_size*z_size,MPI_FLOAT,fromrank,13,comm,&(rrecv));
   if (torank != MPI_PROC_NULL)
   {
-    gather0(bufg_vec,x_size,y_size,z_size,u_vec,ogtime,ogx,ogy,ogz);
+    gather0(bufg_vec,x_size,y_size,z_size,u_vec,ogtime,ogx,ogy,ogz,nthreads);
   }
   MPI_Isend(bufg_vec,x_size*y_size*z_size,MPI_FLOAT,torank,13,comm,&(rsend));
   MPI_Wait(&(rsend),MPI_STATUS_IGNORE);
   MPI_Wait(&(rrecv),MPI_STATUS_IGNORE);
   if (fromrank != MPI_PROC_NULL)
   {
-    scatter0(bufs_vec,x_size,y_size,z_size,u_vec,ostime,osx,osy,osz);
+    scatter0(bufs_vec,x_size,y_size,z_size,u_vec,ostime,osx,osy,osz,nthreads);
   }
 
   free(bufg_vec);
   free(bufs_vec);
 }
 
-static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime)
+static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads)
 {
-  sendrecv0(u_vec,u_vec->hsize[3],u_vec->npsize[2],u_vec->npsize[3],otime,u_vec->oofs[2],u_vec->hofs[4],u_vec->hofs[6],otime,u_vec->hofs[3],u_vec->hofs[4],u_vec->hofs[6],nb->rcc,nb->lcc,comm);
-  sendrecv0(u_vec,u_vec->hsize[2],u_vec->npsize[2],u_vec->npsize[3],otime,u_vec->oofs[3],u_vec->hofs[4],u_vec->hofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->lcc,nb->rcc,comm);
-  sendrecv0(u_vec,u_vec->npsize[1],u_vec->hsize[5],u_vec->npsize[3],otime,u_vec->hofs[2],u_vec->oofs[4],u_vec->hofs[6],otime,u_vec->hofs[2],u_vec->hofs[5],u_vec->hofs[6],nb->crc,nb->clc,comm);
-  sendrecv0(u_vec,u_vec->npsize[1],u_vec->hsize[4],u_vec->npsize[3],otime,u_vec->hofs[2],u_vec->oofs[5],u_vec->hofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->clc,nb->crc,comm);
-  sendrecv0(u_vec,u_vec->npsize[1],u_vec->npsize[2],u_vec->hsize[7],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->oofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[7],nb->ccr,nb->ccl,comm);
-  sendrecv0(u_vec,u_vec->npsize[1],u_vec->npsize[2],u_vec->hsize[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->oofs[7],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->ccl,nb->ccr,comm);
-}/* Backdoor edit at Wed Mar  8 16:11:49 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:14:20 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:14:35 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:22:20 2023*/ 
-/* Backdoor edit at Wed Mar  8 16:22:33 2023*/ 
-/* Backdoor edit at Wed Mar  8 17:01:58 2023*/ 
-/* Backdoor edit at Wed Mar  8 17:02:09 2023*/ 
-/* Backdoor edit at Fri Mar 10 11:56:26 2023*/ 
+  sendrecv0(u_vec,u_vec->hsize[3],u_vec->npsize[2],u_vec->npsize[3],otime,u_vec->oofs[2],u_vec->hofs[4],u_vec->hofs[6],otime,u_vec->hofs[3],u_vec->hofs[4],u_vec->hofs[6],nb->rcc,nb->lcc,comm,nthreads);
+  sendrecv0(u_vec,u_vec->hsize[2],u_vec->npsize[2],u_vec->npsize[3],otime,u_vec->oofs[3],u_vec->hofs[4],u_vec->hofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->lcc,nb->rcc,comm,nthreads);
+  sendrecv0(u_vec,u_vec->npsize[1],u_vec->hsize[5],u_vec->npsize[3],otime,u_vec->hofs[2],u_vec->oofs[4],u_vec->hofs[6],otime,u_vec->hofs[2],u_vec->hofs[5],u_vec->hofs[6],nb->crc,nb->clc,comm,nthreads);
+  sendrecv0(u_vec,u_vec->npsize[1],u_vec->hsize[4],u_vec->npsize[3],otime,u_vec->hofs[2],u_vec->oofs[5],u_vec->hofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->clc,nb->crc,comm,nthreads);
+  sendrecv0(u_vec,u_vec->npsize[1],u_vec->npsize[2],u_vec->hsize[7],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->oofs[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[7],nb->ccr,nb->ccl,comm,nthreads);
+  sendrecv0(u_vec,u_vec->npsize[1],u_vec->npsize[2],u_vec->hsize[6],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->oofs[7],otime,u_vec->hofs[2],u_vec->hofs[4],u_vec->hofs[6],nb->ccl,nb->ccr,comm,nthreads);
+}
