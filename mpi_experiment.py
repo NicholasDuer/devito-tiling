@@ -57,7 +57,7 @@ u.data[:, :, :, :] = 0
 u.data[:, 10, 10, 10] = init_value
 u.data[:, 10, 30, 30] = -init_value
 
-op0 = Operator(eq0, opt=('advanced', {'mpi': True}))
+op0 = Operator(eq0, opt=('advanced'))
 op0.apply(time_M=nt, dt=dt)
 
 try:

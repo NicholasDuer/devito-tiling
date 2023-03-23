@@ -1,3 +1,4 @@
+num_ranks,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss
 2,200,300,200,200,1,0.98,2.65,54.15,2.47
 2,200,300,200,200,2,1.02,2.65,52.03,2.37
 2,200,300,200,200,3,0.71,2.65,74.74,3.4
