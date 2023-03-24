@@ -41,7 +41,7 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads);
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
-int angle = 1;
+int angle = 4;
 int time_tile_size = 3;
 
 static int checkisleft(struct neighborhood * nb) {
@@ -135,7 +135,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                 #pragma omp simd aligned(u:32)
                 for (int z = z_m; z <= z_M; z += 1)
                 {
-                  u[t1][x + 6][y + 6][z + 6] = dt*(-r0*u[t0][x + 6][y + 6][z + 6] - r1*u[t0][x + 6][y + 6][z + 6] - r2*u[t0][x + 6][y + 6][z + 6] + r3*u[t0][x + 6][y + 6][z + 6] + 5.0e-1F*(r0*u[t0][x + 5][y + 6][z + 6] + r0*u[t0][x + 7][y + 6][z + 6] + r1*u[t0][x + 6][y + 5][z + 6] + r1*u[t0][x + 6][y + 7][z + 6] + r2*u[t0][x + 6][y + 6][z + 5] + r2*u[t0][x + 6][y + 6][z + 7]) + 1.0e-1F);
+                  float r4 = -1.42361111100763F*u[t0][x + 24][y + 24][z + 24];
+                  u[t1][x + 24][y + 24][z + 24] = dt*(r0*(r4 - 8.9285714284415e-4F*(u[t0][x + 20][y + 24][z + 24] + u[t0][x + 28][y + 24][z + 24]) + 1.26984126982279e-2F*(u[t0][x + 21][y + 24][z + 24] + u[t0][x + 27][y + 24][z + 24]) - 1.00000000005821e-1F*(u[t0][x + 22][y + 24][z + 24] + u[t0][x + 26][y + 24][z + 24]) + 8.00000000046566e-1F*(u[t0][x + 23][y + 24][z + 24] + u[t0][x + 25][y + 24][z + 24])) + r1*(r4 - 8.9285714284415e-4F*(u[t0][x + 24][y + 20][z + 24] + u[t0][x + 24][y + 28][z + 24]) + 1.26984126982279e-2F*(u[t0][x + 24][y + 21][z + 24] + u[t0][x + 24][y + 27][z + 24]) - 1.00000000005821e-1F*(u[t0][x + 24][y + 22][z + 24] + u[t0][x + 24][y + 26][z + 24]) + 8.00000000046566e-1F*(u[t0][x + 24][y + 23][z + 24] + u[t0][x + 24][y + 25][z + 24])) + r2*(r4 - 8.9285714284415e-4F*(u[t0][x + 24][y + 24][z + 20] + u[t0][x + 24][y + 24][z + 28]) + 1.26984126982279e-2F*(u[t0][x + 24][y + 24][z + 21] + u[t0][x + 24][y + 24][z + 27]) - 1.00000000005821e-1F*(u[t0][x + 24][y + 24][z + 22] + u[t0][x + 24][y + 24][z + 26]) + 8.00000000046566e-1F*(u[t0][x + 24][y + 24][z + 23] + u[t0][x + 24][y + 24][z + 25])) + r3*u[t0][x + 24][y + 24][z + 24] + 1.0e-1F);
                 }
               }
             }

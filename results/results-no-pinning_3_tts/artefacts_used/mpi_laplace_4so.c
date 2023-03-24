@@ -41,7 +41,7 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads);
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
-int angle = 1;
+int angle = 2;
 int time_tile_size = 3;
 
 static int checkisleft(struct neighborhood * nb) {
@@ -135,7 +135,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                 #pragma omp simd aligned(u:32)
                 for (int z = z_m; z <= z_M; z += 1)
                 {
-                  u[t1][x + 6][y + 6][z + 6] = dt*(-r0*u[t0][x + 6][y + 6][z + 6] - r1*u[t0][x + 6][y + 6][z + 6] - r2*u[t0][x + 6][y + 6][z + 6] + r3*u[t0][x + 6][y + 6][z + 6] + 5.0e-1F*(r0*u[t0][x + 5][y + 6][z + 6] + r0*u[t0][x + 7][y + 6][z + 6] + r1*u[t0][x + 6][y + 5][z + 6] + r1*u[t0][x + 6][y + 7][z + 6] + r2*u[t0][x + 6][y + 6][z + 5] + r2*u[t0][x + 6][y + 6][z + 7]) + 1.0e-1F);
+                  float r4 = -1.25F*u[t0][x + 12][y + 12][z + 12];
+                  u[t1][x + 12][y + 12][z + 12] = dt*(r0*(r4 - 4.16666666642413e-2F*(u[t0][x + 10][y + 12][z + 12] + u[t0][x + 14][y + 12][z + 12]) + 6.66666666627862e-1F*(u[t0][x + 11][y + 12][z + 12] + u[t0][x + 13][y + 12][z + 12])) + r1*(r4 - 4.16666666642413e-2F*(u[t0][x + 12][y + 10][z + 12] + u[t0][x + 12][y + 14][z + 12]) + 6.66666666627862e-1F*(u[t0][x + 12][y + 11][z + 12] + u[t0][x + 12][y + 13][z + 12])) + r2*(r4 - 4.16666666642413e-2F*(u[t0][x + 12][y + 12][z + 10] + u[t0][x + 12][y + 12][z + 14]) + 6.66666666627862e-1F*(u[t0][x + 12][y + 12][z + 11] + u[t0][x + 12][y + 12][z + 13])) + r3*u[t0][x + 12][y + 12][z + 12] + 1.0e-1F);
                 }
               }
             }
