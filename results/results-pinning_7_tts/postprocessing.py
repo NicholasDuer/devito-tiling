@@ -62,7 +62,7 @@ def generate_graph(space_order):
     def save_graph(results):
         df = pd.DataFrame(results, columns=['Dimensions', 'Overlapped Tiling MPI', 'Standard MPI', 'OpenMP'])
         df.plot(x='Dimensions', kind='bar', rot=10, ylabel="Average Time elapsed (s)", 
-                title="Laplace Experiments, Time Tile Size: 3, Space Order: " + str(space_order))
+                title="Laplace Experiments, Time Tile Size: 7, Space Order: " + str(space_order))
         plt.savefig(graphs_folder + "results_" + str(space_order) + "so")
     
     save_graph(results)
