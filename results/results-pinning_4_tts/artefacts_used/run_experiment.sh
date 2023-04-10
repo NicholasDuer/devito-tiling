@@ -1,7 +1,7 @@
 #!/bin/bash
 num_iterations=3
 num_ranks=2
-space_order=2
+space_order=8
 
 csv_name_temp_results="results.csv"
 csv_name_openmp="results_openmp_${space_order}so.csv"
