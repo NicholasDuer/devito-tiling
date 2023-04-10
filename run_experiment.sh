@@ -3,6 +3,11 @@ num_iterations=3
 num_ranks=2
 space_order=2
 
+devito_path="$HOME/devito"
+experiment_path="$HOME/devito-tiling"
+original_branch="experiment-unmodified"
+modified_branch="mpi-overlapped-tiling"
+
 csv_name_temp_results="results.csv"
 csv_name_openmp="results_openmp_${space_order}so.csv"
 csv_name_standard_mpi="results_standard_mpi_${space_order}so.csv"
@@ -22,6 +27,9 @@ threads_per_core=8
 source $devito_env_path
 
 set -e
+cd $devito_path
+git checkout $modified_branch
+cd $experiment_path
 
 for time in ${t_vals[@]}
 do
@@ -36,6 +44,10 @@ do
         done
     done
 done
+
+cd $devito_path
+git checkout $original_branch
+cd $experiment_path
 
 echo "num_ranks,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss" >$csv_name_temp_results
 for time in ${t_vals[@]}
@@ -59,6 +71,10 @@ done
 
 cat $csv_name_temp_results > $csv_name_openmp
 
+cd $devito_path
+git checkout $modified_branch
+cd $experiment_path
+
 echo "num_ranks,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss" >$csv_name_temp_results
 for time in ${t_vals[@]}
 do
@@ -80,6 +96,10 @@ do
 done
 
 cat $csv_name_temp_results > $csv_name_overlapped
+
+cd $devito_path
+git checkout $original_branch
+cd $experiment_path
 
 echo "num_ranks,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss" >$csv_name_temp_results
 for time in ${t_vals[@]}
