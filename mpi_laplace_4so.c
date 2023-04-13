@@ -42,7 +42,7 @@ static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const in
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
 int angle = 2;
-int time_tile_size = 4;
+int time_tile_size = 3;
 
 static int checkisleft(struct neighborhood * nb) {
   if (nb->lll == MPI_PROC_NULL && nb->llc == MPI_PROC_NULL && nb->llr == MPI_PROC_NULL && nb->lcl == MPI_PROC_NULL && nb->lcc == MPI_PROC_NULL && nb->lcr == MPI_PROC_NULL && nb->lrl == MPI_PROC_NULL && nb->lrc == MPI_PROC_NULL && nb->lrr == MPI_PROC_NULL) {
@@ -89,6 +89,9 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   int isright = checkisright(nb);
   int istop = checkistop(nb);
   int isbottom = checkisbottom(nb);
+ 
+  int space_order = angle * 2;
+  int kernel_offset = time_tile_size * space_order;
 
   for (int time_tile_base = time_m; time_tile_base <= time_M; time_tile_base += time_tile_size)
   {
@@ -135,8 +138,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                 #pragma omp simd aligned(u:32)
                 for (int z = z_m; z <= z_M; z += 1)
                 {
-	              float r4 = -1.25F*u[t0][x + 16][y + 16][z + 16];
-		      u[t1][x + 16][y + 16][z + 16] = dt*(r0*(r4 + (-4.16666666642413e-2F)*(u[t0][x + 14][y + 16][z + 16] + u[t0][x + 18][y + 16][z + 16]) + 6.66666666627862e-1F*(u[t0][x + 15][y + 16][z + 16] + u[t0][x + 17][y + 16][z + 16])) + r1*(r4 + (-4.16666666642413e-2F)*(u[t0][x + 16][y + 14][z + 16] + u[t0][x + 16][y + 18][z + 16]) + 6.66666666627862e-1F*(u[t0][x + 16][y + 15][z + 16] + u[t0][x + 16][y + 17][z + 16])) + r2*(r4 + (-4.16666666642413e-2F)*(u[t0][x + 16][y + 16][z + 14] + u[t0][x + 16][y + 16][z + 18]) + 6.66666666627862e-1F*(u[t0][x + 16][y + 16][z + 15] + u[t0][x + 16][y + 16][z + 17])) + r3*u[t0][x + 16][y + 16][z + 16] + 1.0e-1F);
+		  float r4 = -1.25F*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset];
+		  u[t1][x + kernel_offset][y + kernel_offset][z + kernel_offset] = dt*(r0*(r4 + (-4.16666666642413e-2F)*(u[t0][x  + kernel_offset - 2][y + kernel_offset][z + kernel_offset] + u[t0][x  + kernel_offset + 2][y + kernel_offset][z + kernel_offset]) + 6.66666666627862e-1F*(u[t0][x  + kernel_offset - 1][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 1][y + kernel_offset][z + kernel_offset])) + r1*(r4 + (-4.16666666642413e-2F)*(u[t0][x + kernel_offset][y  + kernel_offset - 2][z + kernel_offset] + u[t0][x + kernel_offset][y  + kernel_offset + 2][z + kernel_offset]) + 6.66666666627862e-1F*(u[t0][x + kernel_offset][y  + kernel_offset - 1][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 1][z + kernel_offset])) + r2*(r4 + (-4.16666666642413e-2F)*(u[t0][x + kernel_offset][y + kernel_offset][z  + kernel_offset - 2] + u[t0][x + kernel_offset][y + kernel_offset][z  + kernel_offset + 2]) + 6.66666666627862e-1F*(u[t0][x + kernel_offset][y + kernel_offset][z  + kernel_offset - 1] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 1])) + r3*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + 1.0e-1F);
 
                 }
               }

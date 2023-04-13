@@ -41,8 +41,8 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads);
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
-int angle = 4;
-int time_tile_size = 7;
+int angle = 1;
+int time_tile_size = 3;
 
 static int checkisleft(struct neighborhood * nb) {
   if (nb->lll == MPI_PROC_NULL && nb->llc == MPI_PROC_NULL && nb->llr == MPI_PROC_NULL && nb->lcl == MPI_PROC_NULL && nb->lcc == MPI_PROC_NULL && nb->lcr == MPI_PROC_NULL && nb->lrl == MPI_PROC_NULL && nb->lrc == MPI_PROC_NULL && nb->lrr == MPI_PROC_NULL) {
@@ -89,19 +89,14 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   int isright = checkisright(nb);
   int istop = checkistop(nb);
   int isbottom = checkisbottom(nb);
-  
-  int space_order = angle * 2;
-  int kernel_offset = time_tile_size * space_order;
 
   for (int time_tile_base = time_m; time_tile_base <= time_M; time_tile_base += time_tile_size)
   {
     haloupdate0(u_vec,comm,nb,time_tile_base % 2, nthreads);
-
     for (int time = time_tile_base, t0 = (time)%(2), t1 = (time + 1)%(2); time <= MIN(time_M, time_tile_base + time_tile_size - 1); time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
     {
       /* Begin section0 */
       START_TIMER(section0)
-
       int offset = ((time_tile_size - 1) - (time % time_tile_size)) * angle;
       int lower_x_offset = offset;
       int upper_x_offset = offset; 
@@ -138,8 +133,7 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                 #pragma omp simd aligned(u:32)
                 for (int z = z_m; z <= z_M; z += 1)
                 {
-		  float r4 = -1.42361111100763F*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset];
-		  u[t1][x + kernel_offset][y + kernel_offset][z + kernel_offset] = dt*(r0*(r4 + (-8.9285714284415e-4F)*(u[t0][x + kernel_offset - 4][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 4][y + kernel_offset][z + kernel_offset]) + 1.26984126982279e-2F*(u[t0][x + kernel_offset - 3][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 3][y + kernel_offset][z + kernel_offset]) + (-1.00000000005821e-1F)*(u[t0][x + kernel_offset - 2][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 2][y + kernel_offset][z + kernel_offset]) + 8.00000000046566e-1F*(u[t0][x + kernel_offset - 1][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 1][y + kernel_offset][z + kernel_offset])) + r1*(r4 + (-8.9285714284415e-4F)*(u[t0][x + kernel_offset][y + kernel_offset - 4][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 4][z + kernel_offset]) + 1.26984126982279e-2F*(u[t0][x + kernel_offset][y + kernel_offset - 3][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 3][z + kernel_offset]) + (-1.00000000005821e-1F)*(u[t0][x + kernel_offset][y + kernel_offset - 2][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 2][z + kernel_offset]) + 8.00000000046566e-1F*(u[t0][x + kernel_offset][y + kernel_offset - 1][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 1][z + kernel_offset])) + r2*(r4 + (-8.9285714284415e-4F)*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 4] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 4]) + 1.26984126982279e-2F*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 3] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 3]) + (-1.00000000005821e-1F)*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 2] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 2]) + 8.00000000046566e-1F*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 1] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 1])) + r3*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + 1.0e-1F);
+		                u[t1][x + 4][y + 4][z + 4] = dt*(-r0*u[t0][x + 4][y + 4][z + 4] - r1*u[t0][x + 4][y + 4][z + 4] - r2*u[t0][x + 4][y + 4][z + 4] + r3*u[t0][x + 4][y + 4][z + 4] + 5.0e-1F*(r0*u[t0][x + 3][y + 4][z + 4] + r0*u[t0][x + 5][y + 4][z + 4] + r1*u[t0][x + 4][y + 3][z + 4] + r1*u[t0][x + 4][y + 5][z + 4] + r2*u[t0][x + 4][y + 4][z + 3] + r2*u[t0][x + 4][y + 4][z + 5]) + 1.0e-1F);
                 }
               }
             }
