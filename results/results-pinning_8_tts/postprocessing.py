@@ -36,7 +36,7 @@ def generate_graph(space_order):
         overlapped_times = []
         openmp_times = []
 
-        for i in range(num_repeats):
+        for i in range(num_repeats - 1):
             try:
                 standard_times.append(float(standard_row[headers.index("elapsed_time")]))
             except IndexError:
