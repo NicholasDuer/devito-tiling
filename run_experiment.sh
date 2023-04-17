@@ -1,7 +1,7 @@
 #!/bin/bash
 num_iterations=3
 num_ranks=2
-space_order=2
+space_order=8
 
 devito_path="$HOME/devito"
 experiment_path="$HOME/devito-tiling"
@@ -31,6 +31,9 @@ cd $devito_path
 git checkout $modified_branch
 cd $experiment_path
 
+DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $test_norms_script -d 100 100 100 --nt 10 -so $space_order
+
+
 for time in ${t_vals[@]}
 do
     for x in ${x_vals[@]}
@@ -39,7 +42,7 @@ do
         do
             for z in ${z_vals[@]}
             do
-            DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $test_norms_script -d $x $y $z --nt $time -so $space_order
+	    DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $test_norms_script -d $x $y $z --nt $time -so $space_order
             done
         done
     done
@@ -61,7 +64,7 @@ do
                 for iteration in `seq 1 $num_iterations`
                 do
                 echo -n "$num_ranks,$time,$x,$y,$z,$iteration" >> $csv_name_temp_results
-                DEVITO_AUTOTUNING=aggressive OMP_NUM_THREADS=$threads_per_core DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_JIT_BACKDOOR=0 python3 $experiment_script -d $x $y $z --nt $time -so $space_order
+                DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_NUM_THREADS=$threads_per_core DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_JIT_BACKDOOR=0 python3 $experiment_script -d $x $y $z --nt $time -so $space_order
                 echo -en "\n" >> $csv_name_temp_results
                 done
             done
@@ -87,7 +90,7 @@ do
                 for iteration in `seq 1 $num_iterations`
                 do
                 echo -n "$num_ranks,$time,$x,$y,$z,$iteration" >> $csv_name_temp_results
-                DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
+                DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
                 echo -en "\n" >> $csv_name_temp_results
                 done
             done
@@ -113,7 +116,7 @@ do
                 for iteration in `seq 1 $num_iterations`
                 do
                 echo -n "$num_ranks,$time,$x,$y,$z,$iteration" >> $csv_name_temp_results
-                DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
+                DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
                 echo -en "\n" >> $csv_name_temp_results
                 done
             done

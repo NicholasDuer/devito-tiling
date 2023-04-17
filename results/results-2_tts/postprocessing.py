@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from requests import get
 
-space_orders = [2, 4, 8]
+space_orders = [2, 4]
 num_repeats = 3
 
 results_folder = "results/"
@@ -36,7 +36,7 @@ def generate_graph(space_order):
         overlapped_times = []
         openmp_times = []
 
-        for i in range(num_repeats - 1):
+        for i in range(1, num_repeats):
             try:
                 standard_times.append(float(standard_row[headers.index("elapsed_time")]))
             except IndexError:
@@ -62,7 +62,7 @@ def generate_graph(space_order):
     def save_graph(results):
         df = pd.DataFrame(results, columns=['Dimensions', 'Overlapped Tiling MPI', 'Standard MPI', 'OpenMP'])
         df.plot(x='Dimensions', kind='bar', rot=10, ylabel="Average Time elapsed (s)", 
-                title="Laplace Experiments, Time Tile Size: 8, Space Order: " + str(space_order))
+                title="Laplace Experiments, Time Tile Size: 2, Space Order: " + str(space_order))
         plt.savefig(graphs_folder + "results_" + str(space_order) + "so")
     
     save_graph(results)

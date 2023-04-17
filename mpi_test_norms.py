@@ -37,7 +37,7 @@ so = args.space_order
 to = 1
 
 # Initialise u
-init_value = 6.5
+init_value = 1
 
 # Field initialization
 grid = Grid(shape=(nx, ny, nz))
@@ -51,9 +51,7 @@ stencil = solve(eq, u.forward)
 eq0 = Eq(u.forward, stencil)
 
 # ======= mpi standard implementation
-u.data[:, :, :, :] = 0
-u.data[:, 10, 10, 10] = init_value
-u.data[:, 10, 30, 30] = -init_value
+u.data[:, :, :, :] = init_value
 
 configuration['mpi'] = 'full'
 op0 = Operator(eq0, opt=('advanced', {'mpi': True}))
@@ -61,9 +59,8 @@ op0.apply(time_M=nt, dt=dt)
 norm_u = norm(u)
 
 # ======= mpi overlapped implementation
-u.data[:, :, :, :] = 0
-u.data[:, 10, 10, 10] = init_value
-u.data[:, 10, 30, 30] = -init_value
+u.data[:, :, :, :] = init_value
+
 configuration['mpi'] = True
 
 op1 = Operator(eq0, opt=('advanced', {'mpi': True}))

@@ -34,6 +34,7 @@ struct neighborhood
 struct profiler
 {
   double section0;
+  double haloupdate0;
 } ;
 
 static void gather0(float *restrict buf_vec, const int x_size, const int y_size, const int z_size, struct dataobj *restrict u_vec, const int otime, const int ox, const int oy, const int oz, const int nthreads);
@@ -41,8 +42,10 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads);
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
-int angle = 4;
-int time_tile_size = 7;
+const int angle = 4;
+const int time_tile_size = 2;
+const int space_order = angle * 2;
+const int kernel_offset = (time_tile_size - 1) * space_order;
 
 static int checkisleft(struct neighborhood * nb) {
   if (nb->lll == MPI_PROC_NULL && nb->llc == MPI_PROC_NULL && nb->llr == MPI_PROC_NULL && nb->lcl == MPI_PROC_NULL && nb->lcc == MPI_PROC_NULL && nb->lcr == MPI_PROC_NULL && nb->lrl == MPI_PROC_NULL && nb->lrc == MPI_PROC_NULL && nb->lrr == MPI_PROC_NULL) {
@@ -90,12 +93,12 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   int istop = checkistop(nb);
   int isbottom = checkisbottom(nb);
   
-  int space_order = angle * 2;
-  int kernel_offset = time_tile_size * space_order;
 
   for (int time_tile_base = time_m; time_tile_base <= time_M; time_tile_base += time_tile_size)
   {
+    START_TIMER(haloupdate0)
     haloupdate0(u_vec,comm,nb,time_tile_base % 2, nthreads);
+    STOP_TIMER(haloupdate0,timers)
 
     for (int time = time_tile_base, t0 = (time)%(2), t1 = (time + 1)%(2); time <= MIN(time_M, time_tile_base + time_tile_size - 1); time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
     {
@@ -211,6 +214,24 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 
 static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads)
 {
+  if (x_size > kernel_offset) {
+    x_size -= 2 * kernel_offset;
+    ogx += kernel_offset;
+    osx += kernel_offset;
+  }
+
+  if (y_size > kernel_offset) {
+    y_size -= 2 * kernel_offset;
+    ogy += kernel_offset;
+    osy += kernel_offset;
+  }
+
+  if (z_size > kernel_offset) {
+    z_size -= 2 * kernel_offset;
+    ogz += kernel_offset;
+    osz += kernel_offset;
+  }
+
   float *restrict bufg_vec __attribute__ ((aligned (64)));
   posix_memalign((void**)(&bufg_vec),64,x_size*y_size*z_size*sizeof(float));
   float *restrict bufs_vec __attribute__ ((aligned (64)));

@@ -39,7 +39,7 @@ so = args.space_order
 to = 1
 
 # Initialise u
-init_value = 1
+init_value = 6.5
 
 # Field initialization
 grid = Grid(shape=(nx, ny, nz))
@@ -53,7 +53,7 @@ stencil = solve(eq, u.forward)
 eq0 = Eq(u.forward, stencil)
 
 # ======= mpi standard implementation
-u.data[:, :, :, :] = init_value
+u.data[:, :, :, :] = 0
 
 op0 = Operator(eq0, opt=('advanced'))
 op0.apply(time_M=nt, dt=dt)
