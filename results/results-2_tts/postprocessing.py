@@ -32,21 +32,34 @@ def generate_graph(space_order):
         y_size = int(standard_row[headers.index("y_size")])
         z_size = int(standard_row[headers.index("z_size")])
 
-        standard_times = []
-        overlapped_times = []
-        openmp_times = []
+        standard_times_compute = []
+        overlapped_times_compute = []
+        openmp_times_compute = []
+        
+        standard_times_halo = []
+        overlapped_times_halo = []
+        openmp_times_halo = []
 
         for i in range(1, num_repeats):
             try:
-                standard_times.append(float(standard_row[headers.index("elapsed_time")]))
+                elapsed = float(standard_row[headers.index("elapsed_time")])
+                halo = float(standard_row[headers.index("haloupdate0")]
+                standard_times_compute.append(elapsed - halo)
+                standard_times_halo.append(halo)
             except IndexError:
                 pass
             try:
-                overlapped_times.append(float(overlapped_row[headers.index("elapsed_time")]))
+                elapsed = float(overlapped_row[headers.index("elapsed_time")])
+                halo = float(overlapped_row[headers.index("haloupdate0")]
+                overlapped_times_compute.append(elapsed - halo)
+                overlapped_times_halo.append(halo)
             except IndexError:
                 pass
             try:
-                openmp_times.append(float(openmp_row[headers.index("elapsed_time")]))
+                elapsed = float(openmp_row[headers.index("elapsed_time")])
+                halo = 0
+                openmp_times_compute.append(elapsed - halo)
+                openmp_times_halo.append(halo)
             except IndexError:
                 pass
             standard_row = next(standard_csv)
@@ -57,10 +70,10 @@ def generate_graph(space_order):
             return sum(times) / len(times)
         
         experiment_name = "t="+str(timesteps)+",d=("+str(x_size)+","+str(y_size)+","+str(z_size)+ ")"
-        results.append([experiment_name, get_avg_time(overlapped_times), get_avg_time(standard_times), get_avg_time(openmp_times)])
+        results.append([experiment_name, get_avg_time(overlapped_times_compute), get_avg_time(standard_times_compute), get_avg_time(openmp_times_compute), get_avg_time(standard_times_halo), get_avg_time(overlapped_times_halo), get_avg_time(openmp_times_halo)])
     
     def save_graph(results):
-        df = pd.DataFrame(results, columns=['Dimensions', 'Overlapped Tiling MPI', 'Standard MPI', 'OpenMP'])
+        df = pd.DataFrame(results, columns=['Dimensions', 'Overlapped Tiling MPI', 'Standard MPI', 'OpenMP', 'Overlapped Tiling MPI Halo', 'Standard MPI Halo', 'OpenMP Halo'])
         df.plot(x='Dimensions', kind='bar', rot=10, ylabel="Average Time elapsed (s)", 
                 title="Laplace Experiments, Time Tile Size: 2, Space Order: " + str(space_order))
         plt.savefig(graphs_folder + "results_" + str(space_order) + "so")
