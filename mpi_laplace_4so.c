@@ -45,7 +45,7 @@ static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct ne
 const int angle = 2;
 const int time_tile_size = 2;
 const int space_order = angle * 2;
-const int kernel_offset = (time_tile_size - 1) * space_order;
+const int kernel_offset = time_tile_size * angle;
 
 
 static int checkisleft(struct neighborhood * nb) {
@@ -213,7 +213,7 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
   }
 }
 
-static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads)
+static void sendrecv0(struct dataobj *restrict u_vec, int x_size, int y_size, int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads)
 {
   if (x_size > kernel_offset) {
     x_size -= 2 * kernel_offset;
