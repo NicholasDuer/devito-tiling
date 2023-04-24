@@ -17,10 +17,10 @@ test_norms_script="mpi_test_norms.py"
 experiment_script="mpi_experiment.py"
 devito_env_path="../devito-env/bin/activate"
 
-t_vals=(200)
-x_vals=(300 400)
-y_vals=(200 300)
-z_vals=(200)
+t_vals=(5000)
+x_vals=(32 64)
+y_vals=(32 64)
+z_vals=(32)
 
 threads_per_core=8
 

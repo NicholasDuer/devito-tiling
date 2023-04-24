@@ -43,7 +43,7 @@ static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const in
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
 const int angle = 2;
-const int time_tile_size = 8;
+const int time_tile_size = 2;
 const int space_order = angle * 2;
 const int kernel_offset = time_tile_size * angle;
 
