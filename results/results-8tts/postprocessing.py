@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 space_orders = [2, 4, 8]
-tts = 2
+tts = 8
 num_repeats = 3
 
 results_folder = "results/"

@@ -56,7 +56,7 @@ u.data[:, :, :, :] = init_value
 configuration['mpi'] = 'full'
 op0 = Operator(eq0, opt=('advanced', {'mpi': True}))
 op0.apply(time_M=nt, dt=dt)
-norm_u = norm(u, order=8)
+norm_u = norm(u, order=so)
 
 # ======= mpi overlapped implementation
 u.data[:, :, :, :] = init_value
@@ -69,8 +69,8 @@ op1.apply(time_M=nt, dt=dt)
 usol = u
 
 print(norm_u)
-print(norm(u, order=8))
-assert np.isclose(norm(u, order=8), norm_u, atol=1e-4, rtol=0)
+print(norm(u, order=so))
+assert np.isclose(norm(u, order=so), norm_u, atol=1e-4, rtol=0)
 print("Asserted")
 
 # plt.imshow(usol.data[1, 10, :, :]); pause(1)
