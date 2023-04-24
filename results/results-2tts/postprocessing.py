@@ -2,7 +2,8 @@ import csv
 import matplotlib.pyplot as plt
 import pandas as pd
 
-space_orders = [2, 4]
+space_orders = [2, 4, 8]
+tts = 2
 num_repeats = 3
 
 results_folder = "results/"
@@ -73,12 +74,11 @@ def generate_graph(space_order):
     def save_graph(results):
         df = pd.DataFrame(results, columns=['Dimensions', 'Overlapped Tiling MPI', 'Standard MPI', 'OpenMP'])
         df.plot(x='Dimensions', kind='bar', rot=10, ylabel="Average time elapsed (s)", 
-                title="Laplace Experiments, Time Tile Size: 2, Space Order: " + str(space_order))
+                title="Laplace Experiments, Time Tile Size: " + str(tts) + "Space Order: " + str(space_order))
         plt.savefig(graphs_folder + "results_" + str(space_order) + "so")
 
         df = pd.DataFrame(halo_results, columns=['Dimensions', 'Overlapped Tiling MPI', 'Standard MPI'])
-        df.plot(x='Dimensions', kind='bar', rot=10, ylabel="Proportion time spent on communication (%)", 
-                title="Laplace Experiments, Time Tile Size: 2, Space Order: " + str(space_order))
+        df.plot(x='Dimensions', kind='bar', rot=10, ylabel="Proportion time spent on communication vs. computation (%)", title="Laplace Experiments, Time Tile Size: " + str(tts) + ", Space Order: " + str(space_order))
         plt.savefig(graphs_folder + "comm_results_" + str(space_order) + "so")
     
     save_graph(results)
