@@ -42,10 +42,19 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads);
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
+// Parameters for outer time tile
 const int angle = 1;
 const int time_tile_size = 2;
 const int space_order = angle * 2;
 const int kernel_offset = time_tile_size * angle;
+
+// Parameters for inner time tile
+const int inner_time_tile_size = time_tile_size;
+const int inner_time_tile_x_size = 32;
+const int inner_time_tile_y_size = 32;
+
+const int inner_tile_x_delta = inner_time_tile_x_size - 2 * angle * (inner_time_tile_size - 1);
+const int inner_tile_y_delta = inner_time_tile_y_size - 2 * angle * (inner_time_tile_size - 1);
 
 static int checkisleft(struct neighborhood * nb) {
   if (nb->lll == MPI_PROC_NULL && nb->llc == MPI_PROC_NULL && nb->llr == MPI_PROC_NULL && nb->lcl == MPI_PROC_NULL && nb->lcc == MPI_PROC_NULL && nb->lcr == MPI_PROC_NULL && nb->lrl == MPI_PROC_NULL && nb->lrc == MPI_PROC_NULL && nb->lrr == MPI_PROC_NULL) {
@@ -99,54 +108,65 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
     haloupdate0(u_vec,comm,nb,time_tile_base % 2, nthreads);
     STOP_TIMER(haloupdate0,timers)
 
-    for (int time = time_tile_base, t0 = (time)%(2), t1 = (time + 1)%(2); time <= MIN(time_M, time_tile_base + time_tile_size - 1); time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
+    START_TIMER(section0)
+    for (int inner_time_tile_base = time_tile_base; inner_time_tile_base <= MIN(time_M, time_tile_base + time_tile_size - 1); inner_time_tile_base += inner_time_tile_size) 
     {
-      START_TIMER(section0)
-      int offset = ((time_tile_size - 1) - (time % time_tile_size)) * angle;
-      int lower_x_offset = offset;
-      int upper_x_offset = offset; 
-      int lower_y_offset = offset;
-      int upper_y_offset = offset;
-
-      if (isleft) {
-        lower_x_offset = 0;
-      }
-
-      if (isright) {
-        upper_x_offset = 0;
-      }
-
-      if (isbottom) {
-        lower_y_offset = 0;
-      }
-
-      if (istop) {
-        upper_y_offset = 0;
-      }
-
-      #pragma omp parallel num_threads(nthreads)
+      const int outer_tile_offset = angle * ((time_tile_size - 1) - (inner_time_tile_base * time_tile_size));
+      for (int x_inner_time_tile_base = x_m - outer_tile_offset; x_inner_time_tile_base <= x_M + outer_tile_offset; x_inner_time_tile_base += inner_tile_x_delta) 
       {
-        #pragma omp for collapse(2) schedule(dynamic,1)
-        for (int x0_blk0 = x_m - lower_x_offset; x0_blk0 <= x_M + upper_x_offset; x0_blk0 += x0_blk0_size)
+        for (int y_inner_time_tile_base = y_m - outer_tile_offset; y_inner_time_tile_base <= y_M + outer_tile_offset; y_inner_time_tile_base += inner_tile_y_delta) 
         {
-          for (int y0_blk0 = y_m - lower_y_offset; y0_blk0 <= y_M + upper_y_offset; y0_blk0 += y0_blk0_size)
+          for (int time = inner_time_tile_base, t0 = (time) % 2, t1 = (time + 1) % 2; time <= MIN(MIN(time_M, inner_time_tile_base + inner_time_tile_size - 1), time_tile_base + time_tile_size - 1); time += 1)
           {
-            for (int x = x0_blk0; x <= MIN(x0_blk0 + x0_blk0_size - 1, x_M + upper_x_offset); x += 1)
+            #pragma omp parallel num_threads(nthreads) 
             {
-              for (int y = y0_blk0; y <= MIN(y0_blk0 + y0_blk0_size - 1, y_M + upper_y_offset); y += 1)
+              #pragma omp for collapse(2) schedule(dynamic,1)
+              const int inner_tile_offset = angle * (time % inner_time_tile_size);
+              int outer_tile_offset_current_layer = ((time_tile_size - 1) - (time % time_tile_size)) * angle;
+              int lower_x_offset = outer_tile_offset_current_layer;
+              int upper_x_offset = outer_tile_offset_current_layer; 
+              int lower_y_offset = outer_tile_offset_current_layer;
+              int upper_y_offset = outer_tile_offset_current_layer;
+
+              if (isleft) {
+                lower_x_offset = 0;
+              }
+
+              if (isright) {
+                upper_x_offset = 0;
+              }
+
+              if (isbottom) {
+                lower_y_offset = 0;
+              }
+
+              if (istop) {
+                upper_y_offset = 0;
+              }
+
+              for (int x0_blk0 = x_inner_time_tile_base + inner_tile_offset; x0_blk0 <= x_inner_time_tile_base + inner_time_tile_x_size - inner_tile_offset - 1; x0_blk0 += x0_blk0_size) 
               {
-                #pragma omp simd aligned(u:32)
-                for (int z = z_m; z <= z_M; z += 1)
+                for (int y0_blk0 = y_inner_time_tile_base + inner_tile_offset; y0_blk0 <= y_inner_time_tile_base + inner_time_tile_y_size - inner_tile_offset - 1; y0_blk0 += y0_blk0_size)
                 {
-		  u[t1][x + kernel_offset][y + kernel_offset][z + kernel_offset] = dt*(-r0*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] - r1*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] - r2*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + r3*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + 5.0e-1F*(r0*u[t0][x + kernel_offset - 1][y + kernel_offset][z + kernel_offset] + r0*u[t0][x + kernel_offset + 1][y + kernel_offset][z + kernel_offset] + r1*u[t0][x + kernel_offset][y + kernel_offset - 1][z + kernel_offset] + r1*u[t0][x + kernel_offset][y + kernel_offset + 1][z + kernel_offset] + r2*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 1] + r2*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 1]) + 1.0e-1F);
+                  for (int x = MAX(x0_blk0, x_m - lower_x_offset); x <= MIN(MIN(x0_blk0 + x0_blk0_size - 1, x_M + upper_x_offset), x_inner_time_tile_base + inner_time_tile_x_size - inner_tile_offset - 1); x += 1) 
+                  {
+                    for (int y = MAX(y0_blk0, y_m - lower_y_offset); y <= MIN(MIN(y0_blk0 + y0_blk0_size - 1, y_M + upper_y_offset), y_inner_time_tile_base + inner_time_tile_y_size - inner_tile_offset - 1); y += 1) 
+                    {
+                      #pragma omp simd aligned(u:32)
+                      for (int z = z_m; z <= z_M; z += 1)
+                      {
+                        u[t1][x + kernel_offset][y + kernel_offset][z + kernel_offset] = dt*(-r0*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] - r1*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] - r2*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + r3*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + 5.0e-1F*(r0*u[t0][x + kernel_offset - 1][y + kernel_offset][z + kernel_offset] + r0*u[t0][x + kernel_offset + 1][y + kernel_offset][z + kernel_offset] + r1*u[t0][x + kernel_offset][y + kernel_offset - 1][z + kernel_offset] + r1*u[t0][x + kernel_offset][y + kernel_offset + 1][z + kernel_offset] + r2*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 1] + r2*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 1]) + 1.0e-1F);
+                      }
+                    }
+                  }               
                 }
               }
-            }
+            } 
           }
         }
       }
-      STOP_TIMER(section0, timers)
     }
+    STOP_TIMER(section0, timers)
   }
   return 0;
 }
