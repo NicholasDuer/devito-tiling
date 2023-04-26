@@ -18,7 +18,6 @@ parser.add_argument("-bls", "--blevels", default=2, type=int, nargs="+",
                     help="Block levels")
 args = parser.parse_args()
 
-c = ipp.Client(profile='mpi')
 
 nx = args.shape
 nt = args.nt
