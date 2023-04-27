@@ -59,7 +59,7 @@ op0 = Operator(eq0, opt=('advanced'))
 op0.apply(time_M=nt, dt=dt)
 
 f = open("norms.txt", "a")
-f.write(str(norm(u, order=8)) + "\n")
+f.write(str(norm(u, order=4)) + "\n")
 f.close()
 
 try:
