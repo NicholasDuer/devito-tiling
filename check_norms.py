@@ -3,8 +3,10 @@ import numpy as np
 f = open("norms.txt", "r")
 lines = f.readlines()
 
-overlapped_norm = float(lines[0])
-standard_norm = float(lines[1])
+norm = lines[0]
 
-assert np.isclose(overlapped_norm, standard_norm, atol=1e-4, rtol=0)
-print("Asserted!, Norm: " + str(overlapped_norm))
+for norm_1 in lines:
+    for norm_2 in lines:
+        assert np.isclose(float(norm_1), float(norm_2), atol=1e-4, rtol=0)
+
+print("Asserted!, Norm: " + norm)

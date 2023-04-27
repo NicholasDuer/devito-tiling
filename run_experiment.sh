@@ -41,7 +41,6 @@ do
             do
                 for iteration in `seq 1 $num_iterations`
                 do
-                echo "" >$norm_temp_text
                 cd $devito_path
                 git checkout $modified_branch
                 cd $experiment_path
