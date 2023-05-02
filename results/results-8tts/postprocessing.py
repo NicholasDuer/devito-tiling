@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 space_orders = [2, 4, 8]
-tts = 4
+tts = 8
 num_repeats = 3
 
 results_folder = "results/"
