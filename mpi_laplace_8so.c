@@ -45,7 +45,7 @@ static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct ne
 const int angle = 4;
 const int time_tile_size = 8;
 const int space_order = angle * 2;
-const int kernel_offset = time_tile_size * angle;
+const int kernel_offset = space_order + (time_tile_size - 1) * angle;
 
 // Wavefront parameters
 const int wf_height = time_tile_size;

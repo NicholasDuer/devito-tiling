@@ -55,9 +55,16 @@ eq0 = Eq(u.forward, stencil)
 # ======= mpi standard implementation
 u.data[:, :, :, :] = init_value
 
-op0 = Operator(eq0, opt=('advanced'))
-op0.apply(time_M=nt, dt=dt)
+op = Operator(eq0, opt=('advanced'))
+if (configuration['jit-backdoor'] == 1):
+    kernel_path = str(op._compiler.get_jit_dir().joinpath(op._soname)) + ".c"
+    overlapped_file_path = "mpi_laplace_" + str(so) + "so.c"
+    copy_command = "cat " + overlapped_file_path + " > " + kernel_path  
+    os.system(copy_command)
 
+op.apply(time_M=nt, dt=dt)
+
+configuration['jit-backdoor'] = 0
 f = open("norms.txt", "a")
 f.write(str(norm(u, order=4)) + "\n")
 f.close()

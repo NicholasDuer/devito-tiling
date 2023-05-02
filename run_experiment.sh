@@ -1,7 +1,6 @@
 #!/bin/bash
 num_iterations=3
 num_ranks=2
-space_order=8
 
 devito_path="$HOME/devito"
 experiment_path="$HOME/devito-tiling"
@@ -9,8 +8,8 @@ original_branch="experiment-unmodified"
 modified_branch="mpi-overlapped-tiling"
 
 csv_name_temp_results="results.csv"
-csv_name_standard_mpi="results_standard_mpi_${space_order}so.csv"
-csv_name_overlapped="results_overlapped_mpi_${space_order}so.csv"
+csv_name_standard_mpi="results_standard_mpi.csv"
+csv_name_overlapped="results_overlapped_mpi.csv"
 
 norm_temp_text="norms.txt"
 
@@ -18,10 +17,11 @@ check_norms_script="check_norms.py"
 experiment_script="mpi_experiment.py"
 devito_env_path="../devito-env/bin/activate"
 
-t_vals=(256)
+space_orders=(2 4 8)
+t_vals=(256 512)
 x_vals=(256 512)
 y_vals=(256 512)
-z_vals=(256)
+z_vals=(256 512)
 
 threads_per_core=8
 
@@ -31,8 +31,9 @@ set -e
 
 rm -f $norm_temp_text
 rm -f $csv_name_temp_results
-echo "num_ranks,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_overlapped
-echo "num_ranks,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_standard_mpi
+echo "num_ranks,space_order,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_overlapped
+echo "num_ranks,space_order,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_standard_mpi
+
 for time in ${t_vals[@]}
 do
     for x in ${x_vals[@]}
