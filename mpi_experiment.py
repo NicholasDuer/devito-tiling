@@ -23,6 +23,8 @@ parser.add_argument("-nt", "--nt", default=40,
                     type=int, help="Simulation time in millisecond")
 parser.add_argument("-bls", "--blevels", default=2, type=int, nargs="+",
                     help="Block levels")
+parser.add_argument("-tts", "--time_tile_size", default=0,
+                    type=int, help="Time tile size of wavefront implementation")
 args = parser.parse_args()
 
 
@@ -34,6 +36,7 @@ dy = 2. / (ny - 1)
 dz = 2. / (nz - 1)
 sigma = .25
 dt = sigma * dx * dz * dy / nu
+tts = args.tts
 
 so = args.space_order
 to = 1
@@ -58,7 +61,7 @@ u.data[:, :, :, :] = init_value
 op = Operator(eq0, opt=('advanced'))
 if (configuration['jit-backdoor'] == 1):
     kernel_path = str(op._compiler.get_jit_dir().joinpath(op._soname)) + ".c"
-    overlapped_file_path = "mpi_laplace_" + str(so) + "so.c"
+    overlapped_file_path = "./laplace_implementation/mpi_laplace_" + str(so) + "so_." + str(tts) + "tts.c"
     copy_command = "cat " + overlapped_file_path + " > " + kernel_path  
     os.system(copy_command)
 
