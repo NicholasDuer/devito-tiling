@@ -60,12 +60,16 @@ u.data[:, :, :, :] = init_value
 
 op = Operator(eq0, opt=('advanced'))
 if (configuration['jit-backdoor'] == 1):
-    kernel_path = str(op._compiler.get_jit_dir().joinpath(op._soname)) + ".c"
-    overlapped_file_path = "./laplace_implementation/mpi_laplace_" + str(so) + "so_" + str(tts) + "tts.c"
-    copy_command = "cat " + overlapped_file_path + " > " + kernel_path  
-    os.system(copy_command)
-
-op.apply(time_M=nt, dt=dt)
+    try:
+        kernel_path = str(op._compiler.get_jit_dir().joinpath(op._soname)) + ".c"
+        overlapped_file_path = "./laplace_implementation/mpi_laplace_" + str(so) + "so_" + str(tts) + "tts.c"
+        copy_command = "cat " + overlapped_file_path + " > " + kernel_path  
+        os.system(copy_command)
+        op.apply(time_M=nt, dt=dt)
+    except AttributeError:
+        pass
+else:
+    op.apply(time_M=nt, dt=dt)
 
 configuration['jit-backdoor'] = 0
 f = open("norms.txt", "a")
