@@ -18,7 +18,7 @@ experiment_script="mpi_experiment.py"
 devito_env_path="../devito-env/bin/activate"
 
 space_orders=(2 4 8)
-time_tile_sizes=(4 8 16)
+time_tile_sizes=(4 8 16 32)
 t_vals=(256 512)
 x_vals=(256 512)
 y_vals=(256 512)
