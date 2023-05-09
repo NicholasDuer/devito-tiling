@@ -50,7 +50,7 @@ const int kernel_offset = space_order + (time_tile_size - 1) * angle;
 // Wavefront parameters
 const int wf_height = time_tile_size;
 const int wf_x_width = 64;
-const int wf_y_width = 64;
+const int wf_y_width = 32;
 
 static int checkisleft(struct neighborhood * nb) {
   if (nb->lll == MPI_PROC_NULL && nb->llc == MPI_PROC_NULL && nb->llr == MPI_PROC_NULL && nb->lcl == MPI_PROC_NULL && nb->lcc == MPI_PROC_NULL && nb->lcr == MPI_PROC_NULL && nb->lrl == MPI_PROC_NULL && nb->lrc == MPI_PROC_NULL && nb->lrr == MPI_PROC_NULL) {
