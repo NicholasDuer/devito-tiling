@@ -7,7 +7,7 @@ results_folder = "results/"
 graphs_folder = "graphs/"
 
 space_orders = [2,4,8]
-time_tile_sizes = [4,8,16]
+time_tile_sizes = [4,8,16,32]
 selected_experiments = ['t=256,d=(256,256,256)', 't=256,d=(512,256,256)', 't=256,d=(512,512,512)', 't=512,d=(256,256,256)']
 
 overlapped_csv = pd.read_csv(results_folder + "./results_overlapped_mpi.csv")
@@ -28,14 +28,14 @@ def plot_elapsed_times_bars():
 
         overlapped_csv_so = overlapped_csv.loc[overlapped_csv['space_order'] == so]
         standard_csv_so = standard_csv.loc[standard_csv['space_order'] == so]
-        results = pd.concat([standard_csv_so['experiment_name'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 4]['elapsed_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 8]['elapsed_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 16]['elapsed_time'].reset_index(), standard_csv_so['elapsed_time'].reset_index()], axis=1).drop(columns='index')
-        results.columns=['Dimensions', 'TTS=4', 'TTS=8', 'TTS=16', 'Standard MPI']
+        results = pd.concat([standard_csv_so['experiment_name'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 4]['elapsed_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 8]['elapsed_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 16]['elapsed_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 32]['elapsed_time'].reset_index(), standard_csv_so['elapsed_time'].reset_index()], axis=1).drop(columns='index')
+        results.columns=['Dimensions', 'TTS=4', 'TTS=8', 'TTS=16', 'TTS=32', 'Standard MPI']
         results = results.loc[results['Dimensions'].isin(selected_experiments)]
         results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Time elapsed (s)",title="Elapsed Times, YAM Laplace Experiments, SO: " + str(so))
         plt.savefig(graphs_folder + "elapsed_time_" + str(so) + "so")
 
-        results = pd.concat([standard_csv_so['experiment_name'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 4]['computation_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 8]['computation_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 16]['computation_time'].reset_index(), standard_csv_so['computation_time'].reset_index()], axis=1).drop(columns='index')
-        results.columns=['Dimensions', 'TTS=4', 'TTS=8', 'TTS=16', 'Standard MPI']
+        results = pd.concat([standard_csv_so['experiment_name'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 4]['computation_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 8]['computation_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 16]['computation_time'].reset_index(), overlapped_csv_so.loc[overlapped_csv_so['time_tile_size'] == 32]['computation_time'].reset_index(),standard_csv_so['computation_time'].reset_index()], axis=1).drop(columns='index')
+        results.columns=['Dimensions', 'TTS=4', 'TTS=8', 'TTS=16', 'TTS=32', 'Standard MPI']
         results = results.loc[results['Dimensions'].isin(selected_experiments)]
         results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Computation time (s)",title="Computation Times, YAM Laplace Experiments, SO: " + str(so))
         plt.savefig(graphs_folder + "computation_time_" + str(so) + "so")
