@@ -43,7 +43,7 @@ do
     do
         for wf_x_width in ${wf_x_widths[@]}
         do
-            for wf_y_width in ${wf_y_width[@]}
+            for wf_y_width in ${wf_y_widths[@]}
             do  
                 for time in ${t_vals[@]}
                 do
@@ -70,13 +70,13 @@ do
 
                                 if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
                                 then
-                                        echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_standard_mpi
+                                    echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_standard_mpi
                                 fi
                                 DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
                                 if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
                                 then
                                     cat $csv_name_temp_results >> $csv_name_standard_mpi
-                                        secho -en "\n" >> $csv_name_standard_mpi
+                                    echo -en "\n" >> $csv_name_standard_mpi
                                 fi
 
                                 rm $csv_name_temp_results
