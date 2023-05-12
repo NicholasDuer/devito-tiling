@@ -51,7 +51,7 @@ do
                         for iteration in `seq 1 $num_iterations`
                         do
                         cd $devito_path
-                        git checkout "${modified_branch}-${time_tile_size}tts"
+                        git checkout "${modified_branch}"
                         cd $experiment_path
                         echo -n "$num_ranks,$space_order,$time_tile_size,$time,$x,$y,$z,$iteration" >> $csv_name_overlapped
                         DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks python3 $experiment_script -d $x $y $z --nt $time -so $space_order -tts $time_tile_size

@@ -42,16 +42,6 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 static void sendrecv0(struct dataobj *restrict u_vec, const int x_size, const int y_size, const int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads);
 static void haloupdate0(struct dataobj *restrict u_vec, MPI_Comm comm, struct neighborhood * nb, int otime, const int nthreads);
 
-const int angle = 4;
-const int time_tile_size = 16;
-const int space_order = angle * 2;
-const int kernel_offset = space_order + (time_tile_size - 1) * angle;
-
-// Wavefront parameters
-const int wf_height = time_tile_size;
-const int wf_x_width = 256;
-const int wf_y_width = 256;
-
 static int checkisleft(struct neighborhood * nb) {
   if (nb->lll == MPI_PROC_NULL && nb->llc == MPI_PROC_NULL && nb->llr == MPI_PROC_NULL && nb->lcl == MPI_PROC_NULL && nb->lcc == MPI_PROC_NULL && nb->lcr == MPI_PROC_NULL && nb->lrl == MPI_PROC_NULL && nb->lrc == MPI_PROC_NULL && nb->lrr == MPI_PROC_NULL) {
     return 1;
@@ -92,6 +82,16 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   float r1 = 1.0F/(h_y*h_y);
   float r2 = 1.0F/(h_z*h_z);
   float r3 = 1.0F/dt;
+
+  int angle = 2;
+  int time_tile_size = atoi(getenv("TIME_TILE_SIZE"));
+  int space_order = angle * 2;
+  int kernel_offset = space_order + (time_tile_size - 1) * angle;
+
+  // Wavefront parameters
+  int wf_height = time_tile_size;
+  int wf_x_width = atoi(getenv("WF_X_WIDTH"));
+  int wf_y_width = atoi(getenv("WF_Y_WIDTH"));
 
   int isleft = checkisleft(nb);
   int isright = checkisright(nb);
@@ -145,8 +145,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                       #pragma omp simd aligned(u:32)
                       for (int z = z_m; z <= z_M; z += 1)
                       {
-		        float r4 = -1.42361111100763F*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset];
-		         u[t1][x + kernel_offset][y + kernel_offset][z + kernel_offset] = dt*(r0*(r4 + (-8.9285714284415e-4F)*(u[t0][x + kernel_offset - 4][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 4][y + kernel_offset][z + kernel_offset]) + 1.26984126982279e-2F*(u[t0][x + kernel_offset - 3][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 3][y + kernel_offset][z + kernel_offset]) + (-1.00000000005821e-1F)*(u[t0][x + kernel_offset - 2][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 2][y + kernel_offset][z + kernel_offset]) + 8.00000000046566e-1F*(u[t0][x + kernel_offset - 1][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 1][y + kernel_offset][z + kernel_offset])) + r1*(r4 + (-8.9285714284415e-4F)*(u[t0][x + kernel_offset][y + kernel_offset - 4][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 4][z + kernel_offset]) + 1.26984126982279e-2F*(u[t0][x + kernel_offset][y + kernel_offset - 3][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 3][z + kernel_offset]) + (-1.00000000005821e-1F)*(u[t0][x + kernel_offset][y + kernel_offset - 2][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 2][z + kernel_offset]) + 8.00000000046566e-1F*(u[t0][x + kernel_offset][y + kernel_offset - 1][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 1][z + kernel_offset])) + r2*(r4 + (-8.9285714284415e-4F)*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 4] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 4]) + 1.26984126982279e-2F*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 3] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 3]) + (-1.00000000005821e-1F)*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 2] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 2]) + 8.00000000046566e-1F*(u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset - 1] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 1])) + r3*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + 1.0e-1F);
+		        float r4 = -1.25F*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset];
+		        u[t1][x + kernel_offset][y + kernel_offset][z + kernel_offset] = dt*(r0*(r4 + (-4.16666666642413e-2F)*(u[t0][x  + kernel_offset - 2][y + kernel_offset][z + kernel_offset] + u[t0][x  + kernel_offset + 2][y + kernel_offset][z + kernel_offset]) + 6.66666666627862e-1F*(u[t0][x  + kernel_offset - 1][y + kernel_offset][z + kernel_offset] + u[t0][x + kernel_offset + 1][y + kernel_offset][z + kernel_offset])) + r1*(r4 + (-4.16666666642413e-2F)*(u[t0][x + kernel_offset][y  + kernel_offset - 2][z + kernel_offset] + u[t0][x + kernel_offset][y  + kernel_offset + 2][z + kernel_offset]) + 6.66666666627862e-1F*(u[t0][x + kernel_offset][y  + kernel_offset - 1][z + kernel_offset] + u[t0][x + kernel_offset][y + kernel_offset + 1][z + kernel_offset])) + r2*(r4 + (-4.16666666642413e-2F)*(u[t0][x + kernel_offset][y + kernel_offset][z  + kernel_offset - 2] + u[t0][x + kernel_offset][y + kernel_offset][z  + kernel_offset + 2]) + 6.66666666627862e-1F*(u[t0][x + kernel_offset][y + kernel_offset][z  + kernel_offset - 1] + u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset + 1])) + r3*u[t0][x + kernel_offset][y + kernel_offset][z + kernel_offset] + 1.0e-1F);
                       }
                     } 
                   }
@@ -221,24 +221,6 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 
 static void sendrecv0(struct dataobj *restrict u_vec, int x_size, int y_size, int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads)
 {
-  if (x_size > kernel_offset) {
-    x_size -= 2 * kernel_offset;
-    ogx += kernel_offset;
-    osx += kernel_offset;
-  }
-
-  if (y_size > kernel_offset) {
-    y_size -= 2 * kernel_offset;
-    ogy += kernel_offset;
-    osy += kernel_offset;
-  }
-
-  if (z_size > kernel_offset) {
-    z_size -= 2 * kernel_offset;
-    ogz += kernel_offset;
-    osz += kernel_offset;
-  }  
-
   float *restrict bufg_vec __attribute__ ((aligned (64)));
   posix_memalign((void**)(&bufg_vec),64,x_size*y_size*z_size*sizeof(float));
   float *restrict bufs_vec __attribute__ ((aligned (64)));
