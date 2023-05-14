@@ -27,6 +27,8 @@ threads_per_core=10
 source $devito_env_path
 module load intel-suite/2020.2
 module load mpi/intel-2019
+module load tools/prod
+module load iimpi/2021b
 
 set -e
 
