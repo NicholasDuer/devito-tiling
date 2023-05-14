@@ -47,8 +47,8 @@ do
             do
                 if [ `expr $wf_x_index - $wf_y_index` != 2 ] && [ `expr $wf_x_index - $wf_y_index` != -2 ]
                 then
-                    wf_x_width=${wf_dims_tts[$wf_x_index]}
-                    wf_y_width=${wf_dims_tts[$wf_y_index]}
+                    wf_x_width=${wf_dims[$wf_x_index]}
+                    wf_y_width=${wf_dims[$wf_y_index]}
                     for experiment_dim in ${experiment_dims[@]}
                     do
                         IFS=',' read -a dims <<< "${experiment_dim}"
