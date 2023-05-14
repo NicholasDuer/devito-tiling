@@ -1,6 +1,6 @@
 #!/bin/bash
-num_iterations=3
-num_ranks=2
+num_iterations=2
+num_ranks=4
 
 devito_path="$HOME/devito"
 experiment_path="$HOME/devito-tiling"
@@ -19,13 +19,8 @@ devito_env_path="../devito-env/bin/activate"
 
 space_orders=(2 4 8)
 time_tile_sizes=(4 8 16 32)
-wf_x_widths=(16 32 64 96 128 196 256)
-wf_y_widths=(16 32 64 96 128 196 256)
-
-t_vals=(256)
-x_vals=(256 512)
-y_vals=(256 512)
-z_vals=(256 512)
+wavefront_dims=(32,64,96 64,128,196 128,196,256 128,196,256)
+experiment_dims=(256,256,256,256 256,512,256,256 256,256,512,256 256,512,512,512 512,256,256,256)
 
 threads_per_core=10
 
@@ -41,56 +36,60 @@ echo "num_ranks,space_order,time_tile_size,wf_x_width,wf_y_width,time,x_size,y_s
 echo "num_ranks,space_order,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_standard_mpi
 for space_order in ${space_orders[@]}
 do
-    for time_tile_size in ${time_tile_sizes[@]}
+    for tts_index in `seq 0 3`
     do
-        for wf_x_width in ${wf_x_widths[@]}
+        time_tile_size=${time_tile_sizes[$tts_index]}
+        wf_dims_tts=${wavefront_dims[$tts_index]}
+        IFS=',' read -a wf_dims <<< "{$wf_dims_tts}"
+        for wf_x_index in `seq 0 2`
         do
-            for wf_y_width in ${wf_y_width[@]}
-            do  
-                for time in ${t_vals[@]}
-                do
-                    for x in ${x_vals[@]}
+            for wf_y_index in `seq 0 2`
+            do
+                if [ `expr $wf_x_index - $wf_y_index` != 2 ] && [ `expr $wf_x_index - $wf_y_index` != -2 ]
+                then
+                    wf_x_width=${wf_dims_tts[$wf_x_index]}
+                    wf_y_width=${wf_dims_tts[$wf_y_index]}
+                    for experiment_dim in ${experiment_dims[@]}
                     do
-                        for y in ${y_vals[@]}
+                        IFS=',' read -a dims <<< "${experiment_dim}"
+                        time=${dims[0]}
+                        x_size=${dims[1]}
+                        y_size=${dims[2]}
+                        z_size=${dims[3]}
+                        for iteration in `seq 1 $num_iterations`
                         do
-                            for z in ${z_vals[@]}
-                            do
-                                for iteration in `seq 1 $num_iterations`
-                                do
-                                cd $devito_path
-                                git checkout "${modified_branch}"
-                                cd $experiment_path
-                                echo -n "$num_ranks,$space_order,$time_tile_size,$wf_x_width,$wf_y_width,$time,$x,$y,$z,$iteration" >> $csv_name_overlapped
-                                TIME_TILE_SIZE=$time_tile_size WF_X_WIDTH=$wf_x_width WF_Y_WIDTH=$wf_y_width DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
-                                cat $csv_name_temp_results >> $csv_name_overlapped
-                                echo -en "\n" >> $csv_name_overlapped
-                                rm $csv_name_temp_results
+                            cd $devito_path
+                            git checkout "${modified_branch}"
+                            cd $experiment_path
+                            echo -n "$num_ranks,$space_order,$time_tile_size,$wf_x_width,$wf_y_width,$time,$x,$y,$z,$iteration" >> $csv_name_overlapped
+                            TIME_TILE_SIZE=$time_tile_size WF_X_WIDTH=$wf_x_width WF_Y_WIDTH=$wf_y_width DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=1 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
+                            cat $csv_name_temp_results >> $csv_name_overlapped
+                            echo -en "\n" >> $csv_name_overlapped
+                            rm $csv_name_temp_results
 
-                                cd $devito_path
-                                git checkout $original_branch
-                                cd $experiment_path
+                            cd $devito_path
+                            git checkout $original_branch
+                            cd $experiment_path
 
-                                if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
-                                then
-                                        echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_standard_mpi
-                                fi
-                                DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
-                                if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
-                                then
-                                    cat $csv_name_temp_results >> $csv_name_standard_mpi
-                                        secho -en "\n" >> $csv_name_standard_mpi
-                                fi
+                            if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
+                            then
+                                    echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_standard_mpi
+                            fi
+                            DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
+                            if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
+                            then
+                                cat $csv_name_temp_results >> $csv_name_standard_mpi
+                                echo -en "\n" >> $csv_name_standard_mpi
+                            fi
 
-                                rm $csv_name_temp_results
+                            rm $csv_name_temp_results
 
-                                python3 $check_norms_script
-                                rm $norm_temp_text
-                                done
-                            done
+                            python3 $check_norms_script
+                            rm $norm_temp_text
                         done
-                    done
-                done
+                    done  
+                fi
             done
-        done        
-    done    
+        done 
+    done
 done
