@@ -36,10 +36,10 @@ rm -f $norm_temp_text
 rm -f $csv_name_temp_results
 echo "num_ranks,space_order,time_tile_size,wf_x_width,wf_y_width,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_overlapped
 echo "num_ranks,space_order,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_standard_mpi
-for space_order in `seq 0 2`
+for space_order_index in `seq 0 2`
 do
     space_order=${space_orders[$space_order_index]}
-    for tts_index in ${time_tile_sizes[@]}
+    for time_tile_size in ${time_tile_sizes[@]}
     do
         wf_dims_tts=${wavefront_dims[$space_order_index]}
         IFS=',' read -a wf_dims <<< "${wf_dims_tts}"
