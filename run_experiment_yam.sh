@@ -51,9 +51,9 @@ do
                     do
                         IFS=',' read -a dims <<< "${experiment_dim}"
                         time=${dims[0]}
-                        x_size=${dims[1]}
-                        y_size=${dims[2]}
-                        z_size=${dims[3]}
+                        x=${dims[1]}
+                        y=${dims[2]}
+                        z=${dims[3]}
                         for iteration in `seq 1 $num_iterations`
                         do
                             cd $devito_path
