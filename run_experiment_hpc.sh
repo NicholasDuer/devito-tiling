@@ -43,6 +43,7 @@ do
         IFS=',' read -a wf_dims <<< "{$wf_dims_tts}"
         for wf_x_index in `seq 0 2`
         do
+<<<<<<< HEAD
             for wf_y_index in `seq 0 2`
             do
                 if [ `expr $wf_x_index - $wf_y_index` != 2 ] && [ `expr $wf_x_index - $wf_y_index` != -2 ]
@@ -50,6 +51,13 @@ do
                     wf_x_width=${wf_dims_tts[$wf_x_index]}
                     wf_y_width=${wf_dims_tts[$wf_y_index]}
                     for experiment_dim in ${experiment_dims[@]}
+=======
+            for wf_y_width in ${wf_y_widths[@]}
+            do  
+                for time in ${t_vals[@]}
+                do
+                    for x in ${x_vals[@]}
+>>>>>>> c2a30ddf5e4a3d460ab73ad0d2b74f2e6f9ddcd8
                     do
                         IFS=',' read -a dims <<< "${experiment_dim}"
                         time=${dims[0]}
@@ -71,6 +79,7 @@ do
                             git checkout $original_branch
                             cd $experiment_path
 
+<<<<<<< HEAD
                             if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
                             then
                                     echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_standard_mpi
@@ -81,6 +90,18 @@ do
                                 cat $csv_name_temp_results >> $csv_name_standard_mpi
                                 echo -en "\n" >> $csv_name_standard_mpi
                             fi
+=======
+                                if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
+                                then
+                                    echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_standard_mpi
+                                fi
+                                DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
+                                if [ $time_tile_size -eq ${time_tile_sizes[0]} ] && [ $wf_x_width -eq ${wf_x_widths[0]} ] && [ $wf_y_width -eq ${wf_x_widths[0]} ]
+                                then
+                                    cat $csv_name_temp_results >> $csv_name_standard_mpi
+                                    echo -en "\n" >> $csv_name_standard_mpi
+                                fi
+>>>>>>> c2a30ddf5e4a3d460ab73ad0d2b74f2e6f9ddcd8
 
                             rm $csv_name_temp_results
 
