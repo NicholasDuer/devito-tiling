@@ -38,7 +38,7 @@ do
     do
         time_tile_size=${time_tile_sizes[$tts_index]}
         wf_dims_tts=${wavefront_dims[$tts_index]}
-        IFS=',' read -a wf_dims <<< "{$wf_dims_tts}"
+        IFS=',' read -a wf_dims <<< "${wf_dims_tts}"
         for wf_x_index in `seq 0 2`
         do
             for wf_y_index in `seq 0 2`
