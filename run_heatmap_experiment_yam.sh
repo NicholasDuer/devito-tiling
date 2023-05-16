@@ -16,9 +16,9 @@ check_norms_script="check_norms.py"
 experiment_script="mpi_experiment.py"
 devito_env_path="../devito-env/bin/activate"
 
-space_orders=(2 4)
+space_orders=(4 8)
 time_tile_sizes=(4 8 16 32)
-wavefront_dims=(16,32,64,96,128,196,256)
+wavefront_dims=(16 32 64 96 128 196 256)
 experiment_dims=(256,256,256,256)
 
 threads_per_core=8
@@ -32,15 +32,14 @@ set -e
 
 rm -f $norm_temp_text
 rm -f $csv_name_temp_results
-echo "num_ranks,space_order,time_tile_size,wf_x_width,wf_y_width,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_overlapped
-echo "num_ranks,space_order,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_standard_mpi
+#echo "num_ranks,space_order,time_tile_size,wf_x_width,wf_y_width,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_overlapped
 for space_order in ${space_orders[@]}
 do
     for time_tile_size in ${time_tile_sizes[@]}
     do
-        for wf_x_index in ${wavefront_dims[@]}
+        for wf_x_width in ${wavefront_dims[@]}
         do
-            for wf_y_index in ${wavefront_dims[@]}
+            for wf_y_width in ${wavefront_dims[@]}
             do
                 for experiment_dim in ${experiment_dims[@]}
                 do
