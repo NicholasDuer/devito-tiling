@@ -1,22 +1,26 @@
-from matplotlib.cm import ScalarMappable
-from matplotlib.colors import Colormap
+from matplotlib import cm
+from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import pandas as pd
 import numpy as np
+import seaborn as sns
 
 results_folder = "results/"
 graphs_folder = "graphs/"
 heatmaps_folder = graphs_folder + "heatmaps/"
+platform_name = "YAM"
 
 space_orders = [2,4,8]
 time_tile_sizes = [4,8,16,32]
 
 overlapped_csv = pd.read_csv(results_folder + "./results_overlapped_mpi.csv")
+overlapped_heatmap_csv = pd.read_csv(results_folder + "./results_overlapped_heatmaps_mpi.csv")
 standard_csv = pd.read_csv(results_folder + "/results_standard_mpi.csv")
 
 # Average across repeats
 overlapped_csv = overlapped_csv.groupby(['num_ranks', 'space_order', 'time_tile_size','wf_x_width','wf_y_width', 'time', 'x_size', 'y_size', 'z_size']).mean().reset_index().drop(columns=['repeat_num'])
+overlapped_heatmap_csv = overlapped_heatmap_csv.groupby(['num_ranks', 'space_order', 'time_tile_size','wf_x_width','wf_y_width', 'time', 'x_size', 'y_size', 'z_size']).mean().reset_index().drop(columns=['repeat_num'])
 standard_csv = standard_csv.groupby(['num_ranks', 'space_order', 'time', 'x_size', 'y_size', 'z_size']).mean().reset_index().drop(columns=['repeat_num'])
 
 overlapped_csv['experiment_name'] = overlapped_csv.apply(lambda x: "t=" + str(int(x['time'])) + ",d=(" + str(int(x['x_size'])) + "," + str(int(x['y_size'])) + "," + str(int(x['z_size'])) + ")", axis=1)
@@ -28,6 +32,7 @@ experiment_names[-2] = last_experiment
 
 overlapped_csv['computation_time'] = overlapped_csv['elapsed_time'] - overlapped_csv['haloupdate0']
 standard_csv['computation_time'] = standard_csv['elapsed_time'] - standard_csv['haloupdate0']
+overlapped_heatmap_csv['computation_time'] = overlapped_heatmap_csv['elapsed_time'] - overlapped_heatmap_csv['haloupdate0']
 
 def plot_elapsed_times_bars():
     for so in space_orders:
@@ -47,40 +52,29 @@ def plot_elapsed_times_bars():
             return results 
 
         results = get_result_df('elapsed_time')
-        results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Time elapsed (s)",title="Elapsed Times, YAM Laplace Experiments, SO: " + str(so))
+        results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Time elapsed (s)",title="Elapsed Times, " +  platform_name + " Laplace Experiments, SO: " + str(so))
         plt.savefig(graphs_folder + "elapsed_time_" + str(so) + "so")
 
         results = get_result_df('computation_time')
-        results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Computation time (s)",title="Computation Times, YAM Laplace Experiments, SO: " + str(so))
+        results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Computation time (s)",title="Computation Times, " + platform_name + " Laplace Experiments, SO: " + str(so))
         plt.savefig(graphs_folder + "computation_time_" + str(so) + "so")
 
 def plot_heatmaps():
+    include_16_width = False
+    experiment_name = "t=256,d=(256,256,256)"
     for so in space_orders:
-        overlapped_csv_so = overlapped_csv.loc[overlapped_csv['space_order'] == so]
-        
-        for experiment_name in experiment_names:
-            overlapped_csv_so_exp = overlapped_csv_so[overlapped_csv_so['experiment_name'] == experiment_name]
-            x = overlapped_csv_so_exp['wf_x_width'].tolist()
-            y = overlapped_csv_so_exp['wf_y_width'].tolist()
-            z = overlapped_csv_so_exp['time_tile_size'].tolist()
-            c = overlapped_csv_so_exp['computation_time'].tolist()
-            fig = plt.figure(figsize=(8,8))
-            ax = fig.add_subplot(111, projection='3d')
-
-            # configuring colorbar
-            color_map = ScalarMappable()
-            color_map.set_array(c)
-            
-            # creating the heatmap
-            img = ax.scatter(x, y, z, marker='s', s=200)
-            plt.colorbar(color_map)
-
-            ax.set_title("Wavefront Parameter Search Space, " + experiment_name + ", SO: " + str(so))
+        overlapped_csv_so = overlapped_heatmap_csv.loc[overlapped_heatmap_csv['space_order'] == so]
+        for tts in time_tile_sizes:
+            plt.clf()
+            overlapped_csv_so_tts = overlapped_csv_so.loc[(overlapped_csv_so['time_tile_size'] == tts) & (include_16_width | ((overlapped_csv_so['wf_x_width'] > 16) & (overlapped_csv_so['wf_y_width'] > 16)))]
+            ax = sns.heatmap(overlapped_csv_so_tts.pivot("wf_y_width","wf_x_width","elapsed_time"),cmap='RdYlGn_r', cbar_kws={'label': 'Time Elapsed (s)'})
+            ax.set_title(platform_name + " Laplace, " + experiment_name + ", TTS: " + str(tts) + ", SO:" + str(so))
             ax.set_xlabel("Wavefront X Width")
             ax.set_ylabel("Wavefront Y Width")
-            ax.set_zlabel("Wavefront Height")
-            plt.savefig(heatmaps_folder + "heatmap_" + experiment_name + "_" + str(so) + "so")
-            plt.close(fig)
+            ax.invert_yaxis()
+            fig = ax.get_figure()
+            fig.savefig(heatmaps_folder + "heatmap_" + str(tts) + "tts_" + str(so) + "so")
+
 
 def plot_comm_time_lines():
     colours = ['blue', 'green', 'darkorange']
