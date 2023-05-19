@@ -70,6 +70,8 @@ static int checkisbottom(struct neighborhood * nb) {
   return 0;
 }
 
+int kernel_offset;
+
 int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const float h_z, const int time_M, const int time_m, const int x0_blk0_size, const int x_M, const int x_m, const int y0_blk0_size, const int y_M, const int y_m, const int z_M, const int z_m, MPI_Comm comm, struct neighborhood * nb, const int nthreads, struct profiler * timers)
 {
   float (*restrict u)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]] __attribute__ ((aligned (64))) = (float (*)[u_vec->size[1]][u_vec->size[2]][u_vec->size[3]]) u_vec->data;
@@ -86,7 +88,7 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   int angle = 2;
   int time_tile_size = atoi(getenv("TIME_TILE_SIZE"));
   int space_order = angle * 2;
-  int kernel_offset = space_order + (time_tile_size - 1) * angle;
+  kernel_offset = space_order + (time_tile_size - 1) * angle;
 
   // Wavefront parameters
   int wf_height = time_tile_size;
@@ -221,6 +223,23 @@ static void scatter0(float *restrict buf_vec, const int x_size, const int y_size
 
 static void sendrecv0(struct dataobj *restrict u_vec, int x_size, int y_size, int z_size, int ogtime, int ogx, int ogy, int ogz, int ostime, int osx, int osy, int osz, int fromrank, int torank, MPI_Comm comm, const int nthreads)
 {
+  if (x_size > kernel_offset) {
+    x_size -= 2 * kernel_offset;
+    ogx += kernel_offset;
+    osx += kernel_offset;
+  }
+
+  if (y_size > kernel_offset) {
+    y_size -= 2 * kernel_offset;
+    ogy += kernel_offset;
+    osy += kernel_offset;
+  }
+
+  if (z_size > kernel_offset) {
+    z_size -= 2 * kernel_offset;
+    ogz += kernel_offset;
+    osz += kernel_offset;
+  }
   float *restrict bufg_vec __attribute__ ((aligned (64)));
   posix_memalign((void**)(&bufg_vec),64,x_size*y_size*z_size*sizeof(float));
   float *restrict bufs_vec __attribute__ ((aligned (64)));
