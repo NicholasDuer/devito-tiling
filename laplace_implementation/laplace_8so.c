@@ -44,7 +44,7 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   int wf_height = atoi(getenv("WF_HEIGHT"));
   int wf_x_width = atoi(getenv("WF_X_WIDTH"));
   int wf_y_width = atoi(getenv("WF_Y_WIDTH"));
-  int angle = 1;
+  int angle = 4;
 
   START_TIMER(section0)
   for (int wf_time_base = time_m; wf_time_base <= time_M; wf_time_base += wf_height)
@@ -70,7 +70,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                     #pragma omp simd aligned(u:32)
                     for (int z = z_m; z <= z_M; z += 1)
                     {
-                      u[t1][x + 2][y + 2][z + 2] = dt*(-r0*u[t0][x + 2][y + 2][z + 2] - r1*u[t0][x + 2][y + 2][z + 2] - r2*u[t0][x + 2][y + 2][z + 2] + r3*u[t0][x + 2][y + 2][z + 2] + 5.0e-1F*(r0*u[t0][x + 1][y + 2][z + 2] + r0*u[t0][x + 3][y + 2][z + 2] + r1*u[t0][x + 2][y + 1][z + 2] + r1*u[t0][x + 2][y + 3][z + 2] + r2*u[t0][x + 2][y + 2][z + 1] + r2*u[t0][x + 2][y + 2][z + 3]) + 1.0e-1F);
+                      float r4 = -1.42361111100763F*u[t0][x + 8][y + 8][z + 8];
+                      u[t1][x + 8][y + 8][z + 8] = dt*(r0*(r4 + (-8.9285714284415e-4F)*(u[t0][x + 4][y + 8][z + 8] + u[t0][x + 12][y + 8][z + 8]) + 1.26984126982279e-2F*(u[t0][x + 5][y + 8][z + 8] + u[t0][x + 11][y + 8][z + 8]) + (-1.00000000005821e-1F)*(u[t0][x + 6][y + 8][z + 8] + u[t0][x + 10][y + 8][z + 8]) + 8.00000000046566e-1F*(u[t0][x + 7][y + 8][z + 8] + u[t0][x + 9][y + 8][z + 8])) + r1*(r4 + (-8.9285714284415e-4F)*(u[t0][x + 8][y + 4][z + 8] + u[t0][x + 8][y + 12][z + 8]) + 1.26984126982279e-2F*(u[t0][x + 8][y + 5][z + 8] + u[t0][x + 8][y + 11][z + 8]) + (-1.00000000005821e-1F)*(u[t0][x + 8][y + 6][z + 8] + u[t0][x + 8][y + 10][z + 8]) + 8.00000000046566e-1F*(u[t0][x + 8][y + 7][z + 8] + u[t0][x + 8][y + 9][z + 8])) + r2*(r4 + (-8.9285714284415e-4F)*(u[t0][x + 8][y + 8][z + 4] + u[t0][x + 8][y + 8][z + 12]) + 1.26984126982279e-2F*(u[t0][x + 8][y + 8][z + 5] + u[t0][x + 8][y + 8][z + 11]) + (-1.00000000005821e-1F)*(u[t0][x + 8][y + 8][z + 6] + u[t0][x + 8][y + 8][z + 10]) + 8.00000000046566e-1F*(u[t0][x + 8][y + 8][z + 7] + u[t0][x + 8][y + 8][z + 9])) + r3*u[t0][x + 8][y + 8][z + 8] + 1.0e-1F);
                     }
                   } 
                 }

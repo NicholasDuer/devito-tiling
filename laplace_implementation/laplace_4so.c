@@ -44,7 +44,7 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   int wf_height = atoi(getenv("WF_HEIGHT"));
   int wf_x_width = atoi(getenv("WF_X_WIDTH"));
   int wf_y_width = atoi(getenv("WF_Y_WIDTH"));
-  int angle = 1;
+  int angle = 2;
 
   START_TIMER(section0)
   for (int wf_time_base = time_m; wf_time_base <= time_M; wf_time_base += wf_height)
@@ -70,7 +70,8 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                     #pragma omp simd aligned(u:32)
                     for (int z = z_m; z <= z_M; z += 1)
                     {
-                      u[t1][x + 2][y + 2][z + 2] = dt*(-r0*u[t0][x + 2][y + 2][z + 2] - r1*u[t0][x + 2][y + 2][z + 2] - r2*u[t0][x + 2][y + 2][z + 2] + r3*u[t0][x + 2][y + 2][z + 2] + 5.0e-1F*(r0*u[t0][x + 1][y + 2][z + 2] + r0*u[t0][x + 3][y + 2][z + 2] + r1*u[t0][x + 2][y + 1][z + 2] + r1*u[t0][x + 2][y + 3][z + 2] + r2*u[t0][x + 2][y + 2][z + 1] + r2*u[t0][x + 2][y + 2][z + 3]) + 1.0e-1F);
+                      float r4 = -1.25F*u[t0][x + 4][y + 4][z + 4];
+                      u[t1][x + 4][y + 4][z + 4] = dt*(r0*(r4 + (-4.16666666642413e-2F)*(u[t0][x + 2][y + 4][z + 4] + u[t0][x + 6][y + 4][z + 4]) + 6.66666666627862e-1F*(u[t0][x + 3][y + 4][z + 4] + u[t0][x + 5][y + 4][z + 4])) + r1*(r4 + (-4.16666666642413e-2F)*(u[t0][x + 4][y + 2][z + 4] + u[t0][x + 4][y + 6][z + 4]) + 6.66666666627862e-1F*(u[t0][x + 4][y + 3][z + 4] + u[t0][x + 4][y + 5][z + 4])) + r2*(r4 + (-4.16666666642413e-2F)*(u[t0][x + 4][y + 4][z + 2] + u[t0][x + 4][y + 4][z + 6]) + 6.66666666627862e-1F*(u[t0][x + 4][y + 4][z + 3] + u[t0][x + 4][y + 4][z + 5])) + r3*u[t0][x + 4][y + 4][z + 4] + 1.0e-1F);
                     }
                   } 
                 }
