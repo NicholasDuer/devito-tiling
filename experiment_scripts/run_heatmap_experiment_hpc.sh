@@ -7,14 +7,15 @@ experiment_path="$HOME/devito-tiling"
 original_branch="experiment-unmodified"
 modified_branch="mpi-overlapped-tiling"
 
-csv_name_temp_results="results.csv"
-csv_name_overlapped="results_overlapped_heatmaps_mpi.csv"
+csv_name_temp_results="${experiment_path}/results.csv"
+csv_name_overlapped="${experiment_path}/results_overlapped_mpi.csv"
 
 norm_temp_text="norms.txt"
 
-check_norms_script="check_norms.py"
-experiment_script="mpi_experiment.py"
-devito_env_path="../devito-env/bin/activate"
+check_norms_script="${experiment_path}/experiment_scripts/check_norms.py"
+experiment_script="${experiment_path}/experiment_scripts/mpi_experiment.py"
+devito_env_path="../../devito-env/bin/activate"
+
 
 space_orders=(2 4 8)
 time_tile_sizes=(4 8 16 32)
