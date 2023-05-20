@@ -92,7 +92,7 @@ def plot_comm_time_lines():
     standard_comm_times = np.array(standard_csv['haloupdate0'])
     for tts in time_tile_sizes:
         fig, ax = plt.subplots()
-        ax.set_title("Communication Times, Laplace Experiments, TTS: " + str(tts))
+        ax.set_title("Communication Times, " + platform_name + " Laplace Experiments, TTS: " + str(tts))
         ax.set_xlabel("Time spent on communcation, standard MPI (s)")
         ax.set_ylabel("Time spent on communcation, overlapped tiling MPI (s)")
         for so in space_orders:

@@ -92,7 +92,7 @@ def plot_comm_time_lines():
     standard_comm_times = np.array(standard_csv['haloupdate0'])
     for tts in time_tile_sizes:
         fig, ax = plt.subplots()
-        ax.set_title("Communication Times, Laplace Experiments, TTS: " + str(tts))
+        ax.set_title("Communication Times, " + platform_name + " Laplace Experiments, TTS: " + str(tts))
         ax.set_xlabel("Time spent on communcation, standard MPI (s)")
         ax.set_ylabel("Time spent on communcation, overlapped tiling MPI (s)")
         for so in space_orders:
@@ -108,8 +108,16 @@ def plot_comm_time_lines():
 
         m, c = np.polyfit(standard_comm_times, overlapped_comm_times, deg=1)
         plt.plot(standard_comm_times, standard_comm_times * m + c, color='red')
+        
+        #standard_comm_times_no_so = np.array(standard_csv.loc[standard_csv['space_order'] != 8]['haloupdate0'])
+        #overlapped_comm_times = overlapped_csv.loc[(overlapped_csv['time_tile_size'] == tts) & (overlapped_csv['space_order'] != 8)]
+        #overlapped_comm_times = overlapped_comm_times.groupby(['num_ranks', 'space_order', 'time_tile_size', 'time', 'x_size', 'y_size', 'z_size']).min().reset_index()
+        #overlapped_comm_times = np.array(overlapped_comm_times['haloupdate0'])
+        #m, c = np.polyfit(standard_comm_times_no_so, overlapped_comm_times, deg=1)
+        #plt.plot(standard_comm_times_no_so, standard_comm_times_no_so * m + c, color='blue')
+
         plt.legend(handles=handles)
-        plt.text(standard_comm_times[10], overlapped_comm_times[-4], 'y = ' + str(round(m, ndigits=2)) + "x + " + str(round(c, ndigits=2)), size=10, weight="bold")
+        plt.text(standard_comm_times[2], overlapped_comm_times[-1], 'y = ' + str(round(m, ndigits=2)) + "x + " + str(round(c, ndigits=2)), size=10, weight="bold")
         plt.savefig(graphs_folder + "comm_times_line_" + str(tts) + "tts")
 
 plot_elapsed_times_bars()
