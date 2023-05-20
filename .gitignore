@@ -4,3 +4,4 @@ output.txt
 norms.txt
 *.swp
 *.swo
+.vscode

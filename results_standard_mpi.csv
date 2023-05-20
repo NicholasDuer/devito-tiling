@@ -1,0 +1,2 @@
+num_ranks,space_order,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0
+2,2,10,40,40,40,1,1.25,2.08,0.02,0.01

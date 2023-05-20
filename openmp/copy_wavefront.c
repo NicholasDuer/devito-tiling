@@ -42,16 +42,6 @@ int Kernel(const float a, struct dataobj *restrict u_vec, const float dt, const 
   float r2 = 1.0F/(h_y*h_y);
   float r3 = 1.0F/(h_z*h_z);
 
-  x0_blk0_size = 64;
-  y0_blk0_size = 64;
-  nthreads = 4;
-
-  printf("x_M: %d, y_M: %d, z_M: %d, t_M: %d\n", x_M, y_M, z_M, time_M);
-  printf("x0_blk0_size: %d, y0_blk0_size: %d\n", x0_blk0_size, y0_blk0_size);
-
-  
-  //int visited_points[41][11][11][11] = {0};
-
   int a_x = 2;
   int a_y = 2;
   int a_z = 0;
