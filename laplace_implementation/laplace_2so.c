@@ -40,7 +40,6 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   float r1 = 1.0F/(h_y*h_y);
   float r2 = 1.0F/(h_z*h_z);
   float r3 = 1.0F/dt;
-
   int wf_height = atoi(getenv("WF_HEIGHT"));
   int wf_x_width = atoi(getenv("WF_X_WIDTH"));
   int wf_y_width = atoi(getenv("WF_Y_WIDTH"));
@@ -49,9 +48,9 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   START_TIMER(section0)
   for (int wf_time_base = time_m; wf_time_base <= time_M; wf_time_base += wf_height)
   {
-    for (int wf_x_base = x_m; wf_x_base <= x_M; wf_x_base += wf_x_width) 
+    for (int wf_x_base = x_m; wf_x_base <= x_M + angle * (wf_height - 1); wf_x_base += wf_x_width) 
     {
-      for (int wf_y_base = y_m; wf_y_base <= y_M; wf_y_base += wf_y_width) 
+      for (int wf_y_base = y_m; wf_y_base <= y_M + angle * (wf_height - 1); wf_y_base += wf_y_width) 
       {
         int wf_offset = 0;
         for (int time = wf_time_base, t0 = (time)%(2), t1 = (time + 1)%(2); time <= MIN(time_M, wf_time_base + wf_height - 1); time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
@@ -71,7 +70,7 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
                     for (int z = z_m; z <= z_M; z += 1)
                     {
                       u[t1][x + 2][y + 2][z + 2] = dt*(-r0*u[t0][x + 2][y + 2][z + 2] - r1*u[t0][x + 2][y + 2][z + 2] - r2*u[t0][x + 2][y + 2][z + 2] + r3*u[t0][x + 2][y + 2][z + 2] + 5.0e-1F*(r0*u[t0][x + 1][y + 2][z + 2] + r0*u[t0][x + 3][y + 2][z + 2] + r1*u[t0][x + 2][y + 1][z + 2] + r1*u[t0][x + 2][y + 3][z + 2] + r2*u[t0][x + 2][y + 2][z + 1] + r2*u[t0][x + 2][y + 2][z + 3]) + 1.0e-1F);
-                    }
+		    }
                   } 
                 }
               }

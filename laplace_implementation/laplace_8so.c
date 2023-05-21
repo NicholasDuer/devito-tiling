@@ -49,9 +49,9 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
   START_TIMER(section0)
   for (int wf_time_base = time_m; wf_time_base <= time_M; wf_time_base += wf_height)
   {
-    for (int wf_x_base = x_m; wf_x_base <= x_M; wf_x_base += wf_x_width) 
+    for (int wf_x_base = x_m; wf_x_base <= x_M + angle * (wf_height - 1); wf_x_base += wf_x_width) 
     {
-      for (int wf_y_base = y_m; wf_y_base <= y_M; wf_y_base += wf_y_width) 
+      for (int wf_y_base = y_m; wf_y_base <= y_M + angle * (wf_height - 1); wf_y_base += wf_y_width) 
       {
         int wf_offset = 0;
         for (int time = wf_time_base, t0 = (time)%(2), t1 = (time + 1)%(2); time <= MIN(time_M, wf_time_base + wf_height - 1); time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))

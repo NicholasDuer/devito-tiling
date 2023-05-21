@@ -6,7 +6,7 @@ experiment_path="$HOME/devito-tiling"
 original_branch="experiment-unmodified"
 
 csv_name_temp_results="${experiment_path}/results.csv"
-csv_name_wavefront="${experiment_path}/results_wavefront_openmp.csv"
+csv_name_wavefront="${experiment_path}/results_wavefront_mpi.csv"
 csv_name_standard="${experiment_path}/results_standard_openmp.csv"
 
 norm_temp_text="norms.txt"
@@ -17,7 +17,7 @@ devito_env_path="$HOME/devito-env/bin/activate"
 
 space_orders=(2 4 8)
 time_tile_sizes=(4 8 16 32)
-wavefront_dims=(64,128,256)
+wavefront_dims=(32,64,96 32,64,128 64,128,256)
 experiment_dims=(256,256,256,256 256,512,256,256 256,256,512,256 256,512,512,512 512,256,256,256)
 
 threads_per_core=10
