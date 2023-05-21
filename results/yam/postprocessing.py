@@ -9,7 +9,7 @@ import seaborn as sns
 results_folder = "results/"
 graphs_folder = "graphs/"
 heatmaps_folder = graphs_folder + "heatmaps/"
-platform_name = "YAM"
+platform_name = "YAM MPI"
 
 space_orders = [2,4,8]
 time_tile_sizes = [4,8,16,32]
