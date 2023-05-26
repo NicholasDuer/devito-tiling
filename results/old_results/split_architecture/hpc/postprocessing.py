@@ -63,6 +63,10 @@ def plot_elapsed_times_bars():
         results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Communication time (s)",title="Communication Times, " + platform_name + " Laplace Experiments, SO: " + str(so))
         plt.savefig(graphs_folder + "communication_time_" + str(so) + "so")
 
+def plot_gpoints_bars():
+    experiment_name = "t=256,d=(512,512,512)"
+    
+
 def plot_heatmaps():
     include_16_width = False
     experiment_name = "t=256,d=(256,256,256)"
@@ -120,6 +124,7 @@ def plot_comm_time_lines():
         plt.text(standard_comm_times[2], overlapped_comm_times[-1], 'y = ' + str(round(m, ndigits=2)) + "x + " + str(round(c, ndigits=2)), size=10, weight="bold")
         plt.savefig(graphs_folder + "comm_times_line_" + str(tts) + "tts")
 
-plot_elapsed_times_bars()
+#plot_elapsed_times_bars()
+#plot_comm_time_lines()
+
 plot_heatmaps()
-plot_comm_time_lines()
