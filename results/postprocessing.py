@@ -70,14 +70,6 @@ def plot_elapsed_time_bars_MPI(architecture):
 
     results = get_result_df("elapsed_time")
     results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, " +  architecture.upper() + " Laplace Experiments")
-    print(results)
-
-    # Add percentage labels
-    for index, row in results.iterrows():
-        wf = row['Wavefront MPI+OpenMP']
-        std = row['Standard MPI+OpenMP']
-        plt.text(wf / std, wf, std)
-
     plt.savefig(architecture_folder + "/elasped_times_mpi")
 
 def plot_elapsed_time_bars_openmp(architecture):
@@ -102,7 +94,31 @@ def plot_elapsed_time_bars_openmp(architecture):
     results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, " +  architecture.upper() + " Laplace Experiments")
     plt.savefig(architecture_folder + "/elasped_times_openmp")
 
+def plot_elapsed_time_bars_MPI_vs_nonMPI(architecture):
+    _, standard_csv = get_architecture_openmp_results(architecture)
+    _, standard_mpi_csv = get_architecture_mpi_results(architecture)
+    experiment_name = "t=256,d=(512,512,512)"
+    architecture_folder = graphs_folder + architecture
+    
+    def get_result_df(column_name):
+        results = []
+        for so in space_orders:
+            result = ["so=" + str(so)]
+            standard_mpi_csv_so = standard_mpi_csv.loc[(standard_mpi_csv['experiment_name'] == experiment_name) & (standard_mpi_csv['space_order'] == so)]
+            standard_csv_so = standard_csv.loc[(standard_csv['experiment_name'] == experiment_name) & (standard_csv['space_order'] == so)]
+            result.append(standard_mpi_csv_so[column_name].min())
+            result.append(standard_csv_so[column_name].min())
+            results.append(result)
+        results = pd.DataFrame(results)
+        results.columns = ['Space Order', 'MPI Across Multiple Nodes', 'No MPI']
+        return results
+
+    results = get_result_df("elapsed_time")
+    results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, " +  architecture.upper() + " Laplace Experiments")
+    plt.savefig(architecture_folder + "/elasped_times_mpi_vs_no_mpi")    
+
 plot_elapsed_time_bars_MPI("yam")
 plot_elapsed_time_bars_MPI("hpc")
 plot_elapsed_time_bars_openmp("hpc")
+plot_elapsed_time_bars_MPI_vs_nonMPI("hpc")
 
