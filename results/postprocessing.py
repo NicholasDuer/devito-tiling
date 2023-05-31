@@ -110,7 +110,7 @@ def plot_elapsed_time_bars_MPI_vs_nonMPI(architecture):
             result.append(standard_csv_so[column_name].min())
             results.append(result)
         results = pd.DataFrame(results)
-        results.columns = ['Space Order', 'MPI Across Multiple Nodes', 'No MPI']
+        results.columns = ['Space Order', 'MPI Across Four Nodes', 'No MPI']
         return results
 
     results = get_result_df("elapsed_time")
