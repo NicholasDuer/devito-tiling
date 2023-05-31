@@ -61,8 +61,12 @@ def plot_elapsed_time_bars_MPI(architecture):
             result = ["so=" + str(so)]
             overlapped_csv_so = overlapped_csv.loc[(overlapped_csv['experiment_name'] == experiment_name) & (overlapped_csv['space_order'] == so)]
             standard_csv_so = standard_csv.loc[(standard_csv['experiment_name'] == experiment_name) & (standard_csv['space_order'] == so)]
-            result.append(overlapped_csv_so[column_name].min())
-            result.append(standard_csv_so[column_name].min())
+            if (column_name == "gpointss"):
+                result.append(overlapped_csv_so[column_name].max())
+                result.append(standard_csv_so[column_name].max())
+            else:
+                result.append(overlapped_csv_so[column_name].min())
+                result.append(standard_csv_so[column_name].min())
             results.append(result)
         results = pd.DataFrame(results)
         results.columns = ['Space Order', 'Wavefront MPI+OpenMP', 'Standard MPI+OpenMP']
@@ -71,6 +75,10 @@ def plot_elapsed_time_bars_MPI(architecture):
     results = get_result_df("elapsed_time")
     results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, " +  architecture.upper() + " Laplace Experiments")
     plt.savefig(architecture_folder + "/elasped_times_mpi")
+
+    results = get_result_df("gpointss")
+    results.plot(x='Space Order', kind='bar', rot=0, ylabel="GPoints/s",title="GPoints/s, " +  architecture.upper() + " Laplace Experiments")
+    plt.savefig(architecture_folder + "/gpointss_mpi")
 
 def plot_elapsed_time_bars_openmp(architecture):
     wavefront_csv, standard_csv = get_architecture_openmp_results(architecture)
