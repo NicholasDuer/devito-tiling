@@ -20,7 +20,7 @@ devito_env_path="../../devito-env/bin/activate"
 space_orders=(2 4 8)
 time_tile_sizes=(4 8 16 32)
 wavefront_dims=(32,64,96 32,64,128 64,128,256)
-experiment_dims=(256,256,256,256 256,512,256,256 256,256,512,256 256,512,512,512 512,256,256,256)
+experiment_dims=(256,512,512,512)
 
 threads_per_core=10
 
