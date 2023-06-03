@@ -14,8 +14,7 @@ norm_temp_text="norms.txt"
 
 check_norms_script="${experiment_path}/experiment_scripts/check_norms.py"
 experiment_script="${experiment_path}/experiment_scripts/mpi_experiment.py"
-devito_env_path="../../devito-env/bin/activate"
-
+devito_env_path="$HOME/devito-env/bin/activate"
 
 space_orders=(2 4 8)
 time_tile_sizes=(4 8 16 32)
