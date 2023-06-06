@@ -29,7 +29,7 @@ set -e
 
 rm -f $csv_name_temp_results
 echo "num_ranks,space_order,time,x_size,y_size,z_size,repeat_num,elapsed_time,oi,gflopss,gpointss,haloupdate0" >$csv_name_standard_mpi
-for space_order in space_orders
+for space_order in ${space_orders[@]}
 do
     for experiment_dim in ${experiment_dims[@]}
     do
