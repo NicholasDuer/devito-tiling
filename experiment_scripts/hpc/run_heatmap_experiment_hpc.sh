@@ -1,6 +1,6 @@
 #!/bin/bash
-num_iterations=2
-num_ranks=4
+num_iterations=3
+num_ranks=2
 
 devito_path="$HOME/devito"
 experiment_path="$HOME/devito-tiling"
@@ -8,9 +8,7 @@ original_branch="experiment-unmodified"
 modified_branch="mpi-overlapped-tiling"
 
 csv_name_temp_results="${experiment_path}/results.csv"
-csv_name_overlapped="${experiment_path}/results_overlapped_mpi.csv"
-
-norm_temp_text="norms.txt"
+csv_name_overlapped="${experiment_path}/laplace_overlapped_mpi.csv"
 
 check_norms_script="${experiment_path}/experiment_scripts/check_norms.py"
 experiment_script="${experiment_path}/experiment_scripts/mpi_experiment.py"
