@@ -68,10 +68,10 @@ if (configuration['jit-backdoor'] == 1):
 else:
     op.apply(time_M=nt, dt=dt)
 
-configuration['jit-backdoor'] = 0
-f = open("norms.txt", "a")
-f.write(str(norm(u, order=4)) + "\n")
-f.close()
+correct_norms = [127.374054, 127.35808, 127.35254]
+space_orders = [2, 4, 8]
+correct_norm = correct_norms[space_orders.index(so)]
+assert np.isclose(norm(u, order=4), correct_norm, atol=1e-4, rtol=0)
 
 try:
     os.remove("global_stats.txt")
