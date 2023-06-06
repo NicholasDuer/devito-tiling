@@ -17,10 +17,7 @@ time_tile_sizes=(4 8 16 32)
 wavefront_dims=(32,64,96 32,64,128 64,128,256)
 experiment_dims=(256,512,512,512)
 
-threads_per_core=10
-
-module load intel-suite/2020.2
-module load tools/prod
+threads_per_core=8
 
 source $devito_env_path
 cd $devito_path

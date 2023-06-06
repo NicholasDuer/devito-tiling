@@ -1,5 +1,5 @@
 #!/bin/bash
-num_iterations=2
+num_iterations=3
 num_ranks=2
 
 devito_path="$HOME/devito"
@@ -8,22 +8,23 @@ original_branch="experiment-unmodified"
 modified_branch="mpi-overlapped-tiling"
 
 csv_name_temp_results="${experiment_path}/results.csv"
-csv_name_overlapped="${experiment_path}/results_overlapped_mpi.csv"
+csv_name_overlapped="${experiment_path}/laplace_overlapped_mpi.csv"
 
-norm_temp_text="norms.txt"
-
-check_norms_script="${experiment_path}/experiment_scripts/check_norms.py"
-experiment_script="${experiment_path}/experiment_scripts/mpi_experiment.py"
-devito_env_path="../../devito-env/bin/activate"
+experiment_script="${experiment_path}/experiment_scripts/mpi_experiment_laplace.py"
+devito_env_path="$HOME/devito-env/bin/activate"
 
 space_orders=(2 4 8)
 time_tile_sizes=(4 8 16 32)
 wavefront_dims=(16 32 64 96 128 196 256)
-experiment_dims=(256,256,256,256)
+experiment_dims=(256,512,512,512)
 
-threads_per_core=8
+threads_per_core=10
 
 source $devito_env_path
+module load intel-suite/2020.2
+module load mpi/intel-2019
+module load tools/prod
+module load iimpi/2021b
 cd $devito_path
 git checkout "${modified_branch}"
 cd $experiment_path
