@@ -104,7 +104,7 @@ configuration['jit-backdoor'] = 0
 our_norm = norm(u, order=4)
 print("Expected: " + str(correct_norm))
 print("Obtained: " + str(our_norm))
-assert np.isclose(our_norm, correct_norm, atol=1e-2, rtol=0)
+assert np.isclose(our_norm, correct_norm, atol=1e-5, rtol=0)
 
 try:
     os.remove("global_stats.txt")
