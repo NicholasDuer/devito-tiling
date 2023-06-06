@@ -10,8 +10,7 @@ modified_branch="mpi-overlapped-tiling"
 csv_name_temp_results="${experiment_path}/results.csv"
 csv_name_overlapped="${experiment_path}/laplace_overlapped_mpi.csv"
 
-check_norms_script="${experiment_path}/experiment_scripts/check_norms.py"
-experiment_script="${experiment_path}/experiment_scripts/mpi_experiment.py"
+experiment_script="${experiment_path}/experiment_scripts/mpi_experiment_laplace.py"
 devito_env_path="$HOME/devito-env/bin/activate"
 
 space_orders=(2 4 8)
