@@ -14,8 +14,8 @@ time_tile_sizes = [4,8,16,32]
 
 def get_architecture_mpi_results(architecture):
     architecture_folder = results_folder + architecture
-    overlapped_csv = pd.read_csv(architecture_folder + "/results_overlapped_mpi.csv")
-    standard_csv = pd.read_csv(architecture_folder + "/results_standard_mpi.csv")
+    overlapped_csv = pd.read_csv(architecture_folder + "/results_overlapped_laplace_mpi.csv")
+    standard_csv = pd.read_csv(architecture_folder + "/results_standard_laplace_mpi.csv")
 
     # Average across repeats
     overlapped_csv = overlapped_csv.groupby(['num_ranks', 'space_order', 'time_tile_size','wf_x_width','wf_y_width', 'time', 'x_size', 'y_size', 'z_size']).mean().reset_index().drop(columns=['repeat_num'])
@@ -24,9 +24,6 @@ def get_architecture_mpi_results(architecture):
     overlapped_csv['experiment_name'] = overlapped_csv.apply(lambda x: "t=" + str(int(x['time'])) + ",d=(" + str(int(x['x_size'])) + "," + str(int(x['y_size'])) + "," + str(int(x['z_size'])) + ")", axis=1)
     standard_csv['experiment_name'] = standard_csv.apply(lambda x: "t=" + str(int(x['time'])) + ",d=(" + str(int(x['x_size'])) + "," + str(int(x['y_size'])) + "," + str(int(x['z_size'])) + ")", axis=1)
     experiment_names = overlapped_csv['experiment_name'].unique()
-    last_experiment = experiment_names[-1]
-    experiment_names[-1] = experiment_names[-2]
-    experiment_names[-2] = last_experiment
 
     overlapped_csv['computation_time'] = overlapped_csv['elapsed_time'] - overlapped_csv['haloupdate0']
     standard_csv['computation_time'] = standard_csv['elapsed_time'] - standard_csv['haloupdate0']
@@ -131,11 +128,12 @@ def plot_time_bars_openmp(architecture):
             result.append(standard_csv_so[column_name].min())
             results.append(result)
         results = pd.DataFrame(results)
-        results.columns = ['Space Order', 'Wavefront OpenMP', 'Standard OpenMP']
+        results.columns = ['Space Order', 'Wavefront Tiling', 'Standard Devito Code']
         return results
 
     results = get_result_df("elapsed_time")
-    results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, " +  architecture.upper() + " Laplace Experiments")
+    print(results)
+    results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, Xeon v2 Laplace Experiments")
     plt.savefig(architecture_folder + "/elapsed_times_openmp")
 
     def get_result_tts_df(column_name):
@@ -174,11 +172,11 @@ def plot_time_bars_MPI_vs_nonMPI(architecture):
             result.append(standard_csv_so[column_name].min())
             results.append(result)
         results = pd.DataFrame(results)
-        results.columns = ['Space Order', 'MPI Across Four Nodes', 'No MPI']
+        results.columns = ['Space Order', 'Devito with MPI', 'Devito without MPI']
         return results
 
     results = get_result_df("elapsed_time")
-    results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, " +  architecture.upper() + " Laplace Experiments")
+    results.plot(x='Space Order', kind='bar', rot=0, ylabel="Time elapsed (s)",title="Elapsed Times, Xeon v2 Laplace Experiments")
     plt.savefig(architecture_folder + "/elapsed_times_mpi_vs_no_mpi")
 
 def plot_heatmaps_MPI(architecture):
@@ -200,9 +198,9 @@ def plot_heatmaps_MPI(architecture):
             fig = ax.get_figure()
             fig.savefig(heatmaps_folder + "/heatmap_" + str(tts) + "tts_" + str(so) + "so")
 
-plot_time_bars_MPI("yam")
-plot_time_bars_MPI("hpc")
+#plot_time_bars_MPI("yam")
+#plot_time_bars_MPI("hpc")
 plot_time_bars_openmp("hpc")
-plot_time_bars_MPI_vs_nonMPI("hpc")
-plot_heatmaps_MPI("hpc")
-plot_heatmaps_MPI("yam")
+#plot_time_bars_MPI_vs_nonMPI("hpc")
+#plot_heatmaps_MPI("hpc")
+#plot_heatmaps_MPI("yam")
