@@ -44,6 +44,7 @@ do
         z=${dims[3]}
         for iteration in `seq 1 $num_iterations`
         do
+            echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_standard_mpi   
             DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_NUM_THREADS=$threads_per_core OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
             cat $csv_name_temp_results >> $csv_name_standard_mpi
             echo -en "\n" >> $csv_name_standard_mpi
