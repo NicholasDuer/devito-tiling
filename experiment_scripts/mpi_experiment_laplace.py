@@ -77,7 +77,9 @@ print("Expected: " + str(correct_norm))
 print("Obtained: " + str(our_norm))
 assert np.isclose(our_norm, correct_norm, atol=1e-2, rtol=0)
 
+num_ranks = int(os.getenv('NUM_RANKS'))
+
 try:
-    os.remove("global_stats.txt")
+    os.remove("global_stats" + str(num_ranks) + ".txt")
 except FileNotFoundError:
     pass    

@@ -85,3 +85,4 @@ int Kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, cons
 
   return 0;
 }
+
