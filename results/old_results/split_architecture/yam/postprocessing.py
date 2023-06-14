@@ -56,10 +56,12 @@ def plot_elapsed_times_bars():
         plt.savefig(graphs_folder + "elapsed_time_" + str(so) + "so")
 
         results = get_result_df('computation_time')
+        print(results)
         results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Computation time (s)",title="Computation Times, " + platform_name + " Laplace Experiments, SO: " + str(so))
         plt.savefig(graphs_folder + "computation_time_" + str(so) + "so")
 
         results = get_result_df('haloupdate0')
+        print(results)
         results.plot(x='Dimensions', kind='bar', rot=10, ylabel="Communication time (s)",title="Communication Times, " + platform_name + " Laplace Experiments, SO: " + str(so))
         plt.savefig(graphs_folder + "communication_time_" + str(so) + "so")
 
@@ -121,5 +123,5 @@ def plot_comm_time_lines():
         plt.savefig(graphs_folder + "comm_times_line_" + str(tts) + "tts")
 
 plot_elapsed_times_bars()
-plot_heatmaps()
-plot_comm_time_lines()
+#plot_heatmaps()
+#plot_comm_time_lines()
