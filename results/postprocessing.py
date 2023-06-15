@@ -27,6 +27,22 @@ def stencil_name(stencil):
         return "Wave"
     raise Exception("Typo in: " + str(stencil))       
 
+def get_architecture_strong_scaling_results_rank(architecture, stencil, ranks):
+    architecture_folder = results_folder + architecture
+    overlapped_csv = pd.read_csv(architecture_folder + "/" + str(stencil) + "_overlapped_mpi_ranks" + str(ranks) + ".csv")
+    overlapped_csv = overlapped_csv.groupby(['num_ranks', 'space_order', 'time_tile_size','wf_x_width','wf_y_width', 'time', 'x_size', 'y_size', 'z_size']).mean().reset_index().drop(columns=['repeat_num'])
+    overlapped_csv['experiment_name'] = overlapped_csv.apply(lambda x: "t=" + str(int(x['time'])) + ",d=(" + str(int(x['x_size'])) + "," + str(int(x['y_size'])) + "," + str(int(x['z_size'])) + ")", axis=1)
+    overlapped_csv['computation_time'] = overlapped_csv['elapsed_time'] - overlapped_csv['haloupdate0']
+    return overlapped_csv
+
+def get_architecture_strong_scaling_results(architecture, stencil):
+    csv_list = []
+    csv_list.append(get_architecture_strong_scaling_results_rank(architecture, stencil, 1))
+    csv_list.append(get_architecture_strong_scaling_results_rank(architecture, stencil, 2))
+    csv_list.append(get_architecture_strong_scaling_results_rank(architecture, stencil, 4))
+    csv_list.append(get_architecture_strong_scaling_results_rank(architecture, stencil, 8))
+    return csv_list
+
 def get_architecture_mpi_results(architecture, stencil):
     architecture_folder = results_folder + architecture
     overlapped_csv = pd.read_csv(architecture_folder + "/" + str(stencil) + "_overlapped_mpi.csv")
@@ -231,10 +247,43 @@ def plot_heatmaps_MPI(architecture, stencil):
             ax.invert_yaxis()
             fig.savefig(heatmaps_folder + "/heatmap_" + str(tts) + "tth_" + str(so) + "so")
 
+ 
+def plot_strong_scaling_MPI(architecture, stencil):
+    csv_list = get_architecture_strong_scaling_results(architecture, stencil)
+    architecture_folder = graphs_folder + architecture
+    num_ranks_list = [1,2,4,8]
+
+    def get_result_df(column_name):
+        results = []
+        for pointer in range(4):
+            num_ranks = num_ranks_list[pointer]
+            result = ["ranks=" + str(num_ranks)]
+            overlapped_csv = csv_list[pointer]
+            overlapped_csv_so = overlapped_csv.loc[(overlapped_csv['space_order'] == 2)]
+            if (column_name == "elapsed_time"):
+                result.append(overlapped_csv_so[column_name].min())
+            elif (column_name == "haloupdate0"):
+                result.append(overlapped_csv_so[column_name].mean())
+            results.append(result)
+        results = pd.DataFrame(results)
+        results.columns = ['Number of MPI Ranks', 'Elapsed Time']
+        return results
+
+    results = get_result_df("elapsed_time")
+    results.plot(x='Number of MPI Ranks', kind='bar', rot=0, ylabel="Time Elapsed (s)",title="Elapsed Times, " +  CPU_name(architecture) + " Laplace Experiments, Space Order: 2", zorder=3, legend=False, figsize=(8,6))
+    plt.grid(axis='y', zorder=0)
+    plt.savefig(architecture_folder + "/" + stencil + "/elapsed_times_strong_scaling_mpi")
+
+    results = get_result_df("haloupdate0")
+    results.plot(x='Number of MPI Ranks', kind='bar', rot=0, ylabel="MPI Communication Times (s)",title="Communication Times, " + CPU_name(architecture) + " Laplace Experiments, Space Order: 2", zorder=3, legend=False, figsize=(8,6))
+    plt.grid(axis='y', zorder=0)
+    plt.savefig(architecture_folder + "/" + stencil + "/communication_times_strong_scaling_mpi")
+
 font = {'size': 12}
 
 matplotlib.rc('font', **font)
 #plot_time_bars_MPI_vs_nonMPI("yam", "laplace")
-plot_wavefront_bars("yam", "laplace")
-plot_overlapped_bars("hpc", "laplace")
+#plot_wavefront_bars("yam", "laplace")
+#plot_overlapped_bars("hpc", "laplace")
 #plot_heatmaps_MPI("hpc", "laplace")
+plot_strong_scaling_MPI("hpc", "laplace")
