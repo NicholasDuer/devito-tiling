@@ -18,6 +18,7 @@ csv_name_overlapped="${experiment_path}/laplace_standard_mpi_ranks$num_ranks.csv
 experiment_script="${experiment_path}/experiment_scripts/mpi_experiment_laplace.py"
 devito_env_path="$HOME/devito-env/bin/activate"
 
+experiment_dims=(256,512,512,512)
 space_orders=(2 4)
 
 module load intel-suite/2020.2
