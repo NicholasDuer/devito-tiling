@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -lselect=1:ncpus=128:mem=120gb:mpiprocs=4:ompthreads=32
+#PBS -lselect=1:ncpus=128:mem=120gb:mpiprocs=1:ompthreads=128
 #PBS -lwalltime=01:00:00
 
 cd $PBS_O_WORKDIR
@@ -48,7 +48,7 @@ do
         for iteration in `seq 1 $num_iterations`
         do
             echo -n "$num_ranks,$space_order,$time,$x,$y,$z,$iteration" >> $csv_name_overlapped
-            NUM_RANKS=$num_ranks TIME_TILE_SIZE=1 DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket python3 $experiment_script -d $x $y $z --nt $time -so $space_order
+            NUM_RANKS=$num_ranks TIME_TILE_SIZE=1 DEVITO_PROFILING=advanced2 DEVITO_AUTOTUNING=aggressive OMP_PROC_BIND=close OMP_PLACES=cores DEVITO_LANGUAGE=openmp DEVITO_LOGGING=DEBUG DEVITO_MPI=1 DEVITO_JIT_BACKDOOR=0 mpirun -n $num_ranks --bind-to socket --map-by socket --report-bindings python3 $experiment_script -d $x $y $z --nt $time -so $space_order
             cat $csv_name_temp_results >> $csv_name_overlapped
             echo -en "\n" >> $csv_name_overlapped
             rm $csv_name_temp_results

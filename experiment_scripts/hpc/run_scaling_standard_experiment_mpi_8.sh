@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -lselect=1:ncpus=128:mem=120gb:mpiprocs=4:ompthreads=32
+#PBS -lselect=1:ncpus=128:mem=120gb:mpiprocs=8:ompthreads=16
 #PBS -lwalltime=01:00:00
 
 cd $PBS_O_WORKDIR
